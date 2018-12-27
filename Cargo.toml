@@ -12,3 +12,6 @@ cesu8 = "1"
 failure = "0.1"
 hex = "0.3"
 maplit = "1"
+
+[profile.release]
+lto = true

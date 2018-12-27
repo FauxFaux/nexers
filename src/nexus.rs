@@ -35,6 +35,7 @@ pub struct FullInfo {
     pub extension: String,
 }
 
+#[derive(Debug)]
 pub struct Doc {
     pub id: UniqId,
     pub object_info: FullInfo,
@@ -44,6 +45,7 @@ pub struct Doc {
     pub checksum: Option<[u8; 20]>,
 }
 
+#[derive(Debug)]
 pub enum Event {
     Doc(Doc),
     Delete(UniqId),
