@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::io;
 use std::io::BufRead;
 
@@ -14,6 +15,7 @@ use failure::format_err;
 use failure::Error;
 use failure::ResultExt;
 use hex;
+use maplit::hashset;
 
 bitflags! {
     struct FieldFlag: u8 {
@@ -62,7 +64,7 @@ pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
     ensure!(1 == f.read_byte()?, "version byte");
     let _timestamp_ms = f.read_long()?;
 
-    let mut docs = Vec::with_capacity(1_000);
+    let mut docs = Vec::with_capacity(100_000);
 
     let mut errors = Vec::with_capacity(32);
 
@@ -74,21 +76,46 @@ pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
             None => break,
         };
 
-        if fields.iter().find(|(key, _value)| "del" == key).is_some() {
+        let names = fields
+            .iter()
+            .map(|(key, _value)| key.as_str())
+            .collect::<HashSet<_>>();
+
+        if names.contains("del") {
+            continue;
+        }
+
+        if hashset!("DESCRIPTOR", "IDXINFO") == names {
+            continue;
+        }
+
+        if hashset!("rootGroups", "rootGroupsList") == names {
+            continue;
+        }
+
+        if hashset!("allGroups", "allGroupsList") == names {
+            continue;
+        }
+
+        if !(names.contains("u") && names.contains("i") && names.contains("m")) {
+            // TODO: move checker fails on 'fields' here
+            errors.push((err_msg("unrecognised doc type"), fields.clone()));
             continue;
         }
 
         match read_doc(&fields) {
             Ok(doc) => docs.push(doc),
-            Err(e) => {
-                println!("Error in doc:");
-                for (name, value) in &fields {
-                    println!(" * {:?}: {:?}", name, value);
-                }
-                println!("{:?}", e);
-                errors.push((e, fields))
-            }
+            Err(e) => errors.push((e, fields)),
         }
+    }
+
+    for (e, fields) in &errors {
+        println!("Error in doc:");
+        for (name, value) in fields {
+            println!(" * {:?}: {:?}", name, value);
+        }
+        println!("{:?}", e);
+        println!();
     }
 
     println!("{} errors, {} docs", errors.len(), docs.len());
