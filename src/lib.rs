@@ -1,5 +1,5 @@
 use std::io;
-use std::io::Read;
+use std::io::BufRead;
 
 use bitflags::bitflags;
 use byteorder::ReadBytesExt;
@@ -47,7 +47,7 @@ struct Eye {
     packaging_2: String,
 }
 
-struct Doc {
+pub struct Doc {
     you: You,
     eye: Eye,
     modified: u64,
@@ -56,7 +56,7 @@ struct Doc {
     checksum: Option<[u8; 20]>,
 }
 
-pub fn read<R: Read>(f: R) -> Result<(), Error> {
+pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
     let mut f = DataInput { inner: f };
 
     ensure!(1 == f.read_byte()?, "version byte");
@@ -68,9 +68,16 @@ pub fn read<R: Read>(f: R) -> Result<(), Error> {
 
     loop {
         let fields = read_fields(&mut f).with_context(|_| err_msg("reading fields"))?;
+
+        let fields = match fields {
+            Some(fields) => fields,
+            None => break,
+        };
+
         if fields.iter().find(|(key, _value)| "del" == key).is_some() {
             continue;
         }
+
         match read_doc(&fields) {
             Ok(doc) => docs.push(doc),
             Err(e) => {
@@ -83,6 +90,10 @@ pub fn read<R: Read>(f: R) -> Result<(), Error> {
             }
         }
     }
+
+    println!("{} errors, {} docs", errors.len(), docs.len());
+
+    Ok(docs)
 }
 
 fn read_doc(fields: &[(String, String)]) -> Result<Doc, Error> {
@@ -132,11 +143,14 @@ fn read_doc(fields: &[(String, String)]) -> Result<Doc, Error> {
     })
 }
 
-fn read_fields<R: Read>(f: &mut DataInput<R>) -> Result<Vec<(String, String)>, Error> {
-    // TODO: err_msg here
+fn read_fields<R: BufRead>(f: &mut DataInput<R>) -> Result<Option<Vec<(String, String)>>, Error> {
+    if f.check_eof()? {
+        return Ok(None);
+    }
+
     let field_count = f
         .read_int()
-        .with_context(|_| err_msg("reading field count (first field: eof -> end?)"))?;
+        .with_context(|_| err_msg("reading field count (first field)"))?;
 
     let field_count = usize(field_count)?;
     let mut ret = Vec::with_capacity(field_count);
@@ -145,10 +159,10 @@ fn read_fields<R: Read>(f: &mut DataInput<R>) -> Result<Vec<(String, String)>, E
         ret.push(read_field(f).with_context(|_| format_err!("reading field {}", field))?);
     }
 
-    Ok(ret)
+    Ok(Some(ret))
 }
 
-fn read_field<R: Read>(f: &mut DataInput<R>) -> Result<(String, String), Error> {
+fn read_field<R: BufRead>(f: &mut DataInput<R>) -> Result<(String, String), Error> {
     let flags = u8(f.read_byte()?)?;
     let _flags = FieldFlag::from_bits(flags).ok_or_else(|| err_msg("decoding field flags"))?;
 
@@ -237,11 +251,11 @@ fn read_size(value: &str) -> Result<Option<u64>, Error> {
     ))
 }
 
-struct DataInput<R: Read> {
+struct DataInput<R: BufRead> {
     inner: R,
 }
 
-impl<R: Read> DataInput<R> {
+impl<R: BufRead> DataInput<R> {
     fn read_byte(&mut self) -> Result<i8, io::Error> {
         self.inner.read_i8()
     }
@@ -270,10 +284,15 @@ impl<R: Read> DataInput<R> {
             )),
         }
     }
+
+    fn check_eof(&mut self) -> Result<bool, Error> {
+        Ok(self.inner.fill_buf()?.is_empty())
+    }
 }
 
 #[test]
 fn sample() -> Result<(), Error> {
     use std::fs;
-    read(io::BufReader::new(fs::File::open("sample-index").unwrap()))
+    read(io::BufReader::new(fs::File::open("sample-index").unwrap()))?;
+    Ok(())
 }
