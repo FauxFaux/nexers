@@ -63,12 +63,25 @@ pub fn read<R: Read>(f: R) -> Result<(), Error> {
 
     let mut docs = Vec::with_capacity(1_000);
 
+    let mut errors = Vec::with_capacity(32);
+
     loop {
-        docs.push(read_doc(&mut f).with_context(|_| format_err!("reading doc {}", docs.len()))?);
+        let fields = read_fields(&mut f).with_context(|_| err_msg("reading fields"))?;
+        match read_doc(&fields) {
+            Ok(doc) => docs.push(doc),
+            Err(e) => {
+                println!("Error in doc:");
+                for (name, value) in &fields {
+                    println!(" * {:?}: {:?}", name, value);
+                }
+                println!("{:?}", e);
+                errors.push((e, fields))
+            }
+        }
     }
 }
 
-fn read_doc<R: Read>(f: &mut DataInput<R>) -> Result<Doc, Error> {
+fn read_doc(fields: &[(String, String)]) -> Result<Doc, Error> {
     let mut you = None;
     let mut eye = None;
     let mut modified = None;
@@ -76,8 +89,8 @@ fn read_doc<R: Read>(f: &mut DataInput<R>) -> Result<Doc, Error> {
     let mut description = None;
     let mut checksum = None;
 
-    read_fields(f, |field_name, value| {
-        match field_name.as_ref() {
+    for (field_name, value) in fields {
+        match field_name.as_str() {
             "u" => {
                 you =
                     Some(read_u(&value).with_context(|_| format_err!("reading 'u': {:?}", value))?)
@@ -93,8 +106,8 @@ fn read_doc<R: Read>(f: &mut DataInput<R>) -> Result<Doc, Error> {
                         .with_context(|_| format_err!("reading 'm': {:?}", value))?,
                 )
             }
-            "n" => name = Some(value),
-            "d" => description = Some(value),
+            "n" => name = Some(value.to_string()),
+            "d" => description = Some(value.to_string()),
             "1" => {
                 checksum = Some(
                     read_checksum(&value)
@@ -103,9 +116,7 @@ fn read_doc<R: Read>(f: &mut DataInput<R>) -> Result<Doc, Error> {
             }
             _ => (), // bail!("unrecognised field value: {:?}", field_name),
         }
-        Ok(())
-    })
-    .with_context(|_| err_msg("reading fields"))?;
+    }
 
     Ok(Doc {
         you: you.ok_or_else(|| err_msg("no 'u'"))?,
@@ -117,26 +128,20 @@ fn read_doc<R: Read>(f: &mut DataInput<R>) -> Result<Doc, Error> {
     })
 }
 
-fn read_fields<R: Read, F: FnMut(String, String) -> Result<(), Error>>(
-    f: &mut DataInput<R>,
-    mut cb: F,
-) -> Result<(), Error> {
+fn read_fields<R: Read>(f: &mut DataInput<R>) -> Result<Vec<(String, String)>, Error> {
     // TODO: err_msg here
     let field_count = f
         .read_int()
         .with_context(|_| err_msg("reading field count (first field: eof -> end?)"))?;
 
     let field_count = usize(field_count)?;
-    println!("{} fields:", field_count);
+    let mut ret = Vec::with_capacity(field_count);
 
     for field in 0..field_count {
-        let (name, value) =
-            read_field(f).with_context(|_| format_err!("reading field {}", field))?;
-        println!(" * {:?}: {:?}", name, value);
-        cb(name, value)?;
+        ret.push(read_field(f).with_context(|_| format_err!("reading field {}", field))?);
     }
 
-    Ok(())
+    Ok(ret)
 }
 
 fn read_field<R: Read>(f: &mut DataInput<R>) -> Result<(String, String), Error> {
@@ -215,9 +220,12 @@ fn read_size(value: &str) -> Result<Option<u64>, Error> {
         return Ok(None);
     }
 
-    Ok(Some(value.parse::<u64>().with_context(|_| err_msg("reading size"))?))
+    Ok(Some(
+        value
+            .parse::<u64>()
+            .with_context(|_| err_msg("reading size"))?,
+    ))
 }
-
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Packaging {
@@ -225,16 +233,13 @@ enum Packaging {
     Pom,
     War,
     Plugin,
+    Bundle,
     Zip,
     Xml,
     JavadocJar,
     TarGz,
     DistZip,
     DistTgz,
-
-    // xmlbeans|xbean_xpath|1.0.4|jdk1|3.jar
-    // (jdk1.3.jar)
-    ThreeJar,
 
     // xstream|xstream|1.2.2 i: null|1182839150000|-1|0|0|0|pom
     Null,
@@ -247,13 +252,13 @@ impl Packaging {
             "pom" => Packaging::Pom,
             "war" => Packaging::War,
             "plugin" => Packaging::Plugin,
+            "bundle" => Packaging::Bundle,
             "zip" => Packaging::Zip,
             "xml" => Packaging::Xml,
             "javadoc.jar" => Packaging::JavadocJar,
             "tar.gz" => Packaging::TarGz,
             "distribution-zip" => Packaging::DistZip,
             "distribution-tgz" => Packaging::DistTgz,
-            "3.jar" => Packaging::ThreeJar,
             "null" => Packaging::Null,
             other => bail!("invalid packaging: {:?}", other),
         })
