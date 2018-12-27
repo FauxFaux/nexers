@@ -26,7 +26,7 @@ bitflags! {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 struct UniqId {
     group: String,
     artifact: String,
@@ -62,6 +62,7 @@ pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
     let _timestamp_ms = f.read_long()?;
 
     let mut docs = Vec::with_capacity(100_000);
+    let mut deletions = HashSet::with_capacity(1_000);
 
     let mut errors = Vec::with_capacity(32);
 
@@ -79,6 +80,12 @@ pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
             .collect::<HashSet<_>>();
 
         if names.contains("del") {
+            deletions.insert(read_uniq(
+                fields
+                    .iter()
+                    .find_map(|(key, value)| if "del" == key { Some(value) } else { None })
+                    .expect("just checked"),
+            )?);
             continue;
         }
 
@@ -115,7 +122,16 @@ pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
         println!();
     }
 
-    println!("{} errors, {} docs", errors.len(), docs.len());
+    println!(
+        "{} errors, {} deletions, {} docs",
+        errors.len(),
+        deletions.len(),
+        docs.len()
+    );
+
+    docs.retain(|v| !deletions.contains(&v.id));
+
+    println!("{} live docs", docs.len());
 
     Ok(docs)
 }
@@ -344,6 +360,11 @@ impl<R: BufRead> DataInput<R> {
 #[test]
 fn sample() -> Result<(), Error> {
     use std::fs;
-    read(io::BufReader::new(fs::File::open("sample-index").unwrap()))?;
+    let docs = read(io::BufReader::new(fs::File::open("sample-index").unwrap()))?;
+    for d in docs {
+        if d.id.group == "com.google.guava" && d.id.artifact == "guava" {
+            println!("{:?} {:?}", d.id, d.object_info);
+        }
+    }
     Ok(())
 }
