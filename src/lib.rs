@@ -43,9 +43,9 @@ struct Eye {
     packaging_1: String,
     some_time: u64,
     size: Option<u64>,
-    flag_1: u8,
-    flag_2: u8,
-    flag_3: u8,
+    source_attached: AttachmentStatus,
+    javadoc_attached: AttachmentStatus,
+    signature_attached: AttachmentStatus,
     packaging_2: String,
 }
 
@@ -150,12 +150,8 @@ fn read_doc(fields: &[(String, String)]) -> Result<Doc, Error> {
             }
             "n" => name = Some(value.to_string()),
             "d" => description = Some(value.to_string()),
-            "1" => {
-                checksum = Some(
-                    read_checksum(&value)
-                        .with_context(|_| format_err!("reading '1': {:?}", value))?,
-                )
-            }
+            "1" => checksum = read_checksum(&value).ok(),
+
             _ => (), // bail!("unrecognised field value: {:?}", field_name),
         }
     }
@@ -203,6 +199,7 @@ fn read_field<R: BufRead>(f: &mut DataInput<R>) -> Result<(String, String), Erro
     Ok((name, value))
 }
 
+#[inline]
 fn read_checksum(value: &str) -> Result<[u8; 20], Error> {
     let decoded = hex::decode(value).with_context(|_| err_msg("decoding checksum"))?;
     ensure!(20 == decoded.len(), "checksum was wrong length");
@@ -244,21 +241,17 @@ fn read_i(value: &str) -> Result<Eye, Error> {
             .parse::<u64>()
             .with_context(|_| err_msg("reading time"))?,
         size: read_size(parts.next().ok_or_else(|| err_msg("short i: size"))?)?,
-        flag_1: parts
-            .next()
-            .ok_or_else(|| err_msg("short i: flag 1"))?
-            .parse::<u8>()
-            .with_context(|_| err_msg("reading flag 1"))?,
-        flag_2: parts
-            .next()
-            .ok_or_else(|| err_msg("short i: flag 2"))?
-            .parse::<u8>()
-            .with_context(|_| err_msg("reading flag 2"))?,
-        flag_3: parts
-            .next()
-            .ok_or_else(|| err_msg("short i: flag 3"))?
-            .parse::<u8>()
-            .with_context(|_| err_msg("reading flag 3"))?,
+        source_attached: AttachmentStatus::read(
+            parts
+                .next()
+                .ok_or_else(|| err_msg("short i: sources flag"))?,
+        )?,
+        javadoc_attached: AttachmentStatus::read(
+            parts.next().ok_or_else(|| err_msg("short i: flag 2"))?,
+        )?,
+        signature_attached: AttachmentStatus::read(
+            parts.next().ok_or_else(|| err_msg("short i: flag 3"))?,
+        )?,
         packaging_2: parts
             .next()
             .ok_or_else(|| err_msg("short i: p2"))?
@@ -276,6 +269,24 @@ fn read_size(value: &str) -> Result<Option<u64>, Error> {
             .parse::<u64>()
             .with_context(|_| err_msg("reading size"))?,
     ))
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+enum AttachmentStatus {
+    Absent,
+    Present,
+    Unavailable,
+}
+
+impl AttachmentStatus {
+    fn read(value: &str) -> Result<AttachmentStatus, Error> {
+        Ok(match value.parse::<u8>() {
+            Ok(0) => AttachmentStatus::Absent,
+            Ok(1) => AttachmentStatus::Present,
+            Ok(2) => AttachmentStatus::Unavailable,
+            other => bail!("invalid attachment value: {:?}: {:?}", value, other),
+        })
+    }
 }
 
 struct DataInput<R: BufRead> {
