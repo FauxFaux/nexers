@@ -6,6 +6,7 @@ use byteorder::ReadBytesExt;
 use byteorder::BE;
 use cast::u8;
 use cast::usize;
+use cesu8;
 use failure::bail;
 use failure::ensure;
 use failure::err_msg;
@@ -162,8 +163,7 @@ fn read_field<R: Read>(f: &mut DataInput<R>) -> Result<(String, String), Error> 
 }
 
 fn read_checksum(value: &str) -> Result<[u8; 20], Error> {
-    let decoded = hex::decode(value)
-        .with_context(|_| err_msg("decoding checksum"))?;
+    let decoded = hex::decode(value).with_context(|_| err_msg("decoding checksum"))?;
     ensure!(20 == decoded.len(), "checksum was wrong length");
     let mut arr = [0u8; 20];
     arr.copy_from_slice(&decoded);
@@ -193,7 +193,10 @@ fn read_u(value: &str) -> Result<You, Error> {
 fn read_i(value: &str) -> Result<Eye, Error> {
     let mut parts = value.split('|');
     Ok(Eye {
-        packaging_1: parts.next().ok_or_else(|| err_msg("short i: p1"))?.to_string(),
+        packaging_1: parts
+            .next()
+            .ok_or_else(|| err_msg("short i: p1"))?
+            .to_string(),
         some_time: parts
             .next()
             .ok_or_else(|| err_msg("short i: time"))?
@@ -215,7 +218,10 @@ fn read_i(value: &str) -> Result<Eye, Error> {
             .ok_or_else(|| err_msg("short i: flag 3"))?
             .parse::<u8>()
             .with_context(|_| err_msg("reading flag 3"))?,
-        packaging_2: parts.next().ok_or_else(|| err_msg("short i: p2"))?.to_string(),
+        packaging_2: parts
+            .next()
+            .ok_or_else(|| err_msg("short i: p2"))?
+            .to_string(),
     })
 }
 
@@ -254,7 +260,15 @@ impl<R: Read> DataInput<R> {
         }
         let mut buf = vec![0u8; usize::from(len)];
         self.inner.read_exact(&mut buf)?;
-        Ok(String::from_utf8(buf)?)
+
+        match cesu8::from_java_cesu8(&buf) {
+            Ok(s) => Ok(s.to_string()),
+            Err(e) => Err(format_err!(
+                "invalid 'modified' utf-8: {:?}: {:?}",
+                e,
+                String::from_utf8_lossy(&buf)
+            )),
+        }
     }
 }
 
