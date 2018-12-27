@@ -27,7 +27,7 @@ bitflags! {
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
-struct UniqId {
+pub struct UniqId {
     group: String,
     artifact: String,
     version: String,
@@ -55,19 +55,26 @@ pub struct Doc {
     checksum: Option<[u8; 20]>,
 }
 
-pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
-    let mut f = DataInput { inner: f };
+pub enum Event {
+    Doc(Doc),
+    Delete(UniqId),
+    Error {
+        error: Error,
+        raw: Vec<(String, String)>,
+    },
+}
 
-    ensure!(1 == f.read_byte()?, "version byte");
-    let _timestamp_ms = f.read_long()?;
+pub fn read<R: BufRead, F>(from: R, mut cb: F) -> Result<(), Error>
+where
+    F: FnMut(Event) -> Result<(), Error>,
+{
+    let mut from = DataInput { inner: from };
 
-    let mut docs = Vec::with_capacity(100_000);
-    let mut deletions = HashSet::with_capacity(1_000);
-
-    let mut errors = Vec::with_capacity(32);
+    ensure!(1 == from.read_byte()?, "version byte");
+    let _timestamp_ms = from.read_long()?;
 
     loop {
-        let fields = read_fields(&mut f).with_context(|_| err_msg("reading fields"))?;
+        let fields = read_fields(&mut from).with_context(|_| err_msg("reading fields"))?;
 
         let fields = match fields {
             Some(fields) => fields,
@@ -80,12 +87,12 @@ pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
             .collect::<HashSet<_>>();
 
         if names.contains("del") {
-            deletions.insert(read_uniq(
+            cb(Event::Delete(read_uniq(
                 fields
                     .iter()
                     .find_map(|(key, value)| if "del" == key { Some(value) } else { None })
                     .expect("just checked"),
-            )?);
+            )?))?;
             continue;
         }
 
@@ -103,37 +110,20 @@ pub fn read<R: BufRead>(f: R) -> Result<Vec<Doc>, Error> {
 
         if !(names.contains("u") && names.contains("i") && names.contains("m")) {
             // TODO: move checker fails on 'fields' here
-            errors.push((err_msg("unrecognised doc type"), fields.clone()));
+            cb(Event::Error {
+                error: err_msg("unrecognised doc type"),
+                raw: fields.clone(),
+            })?;
             continue;
         }
 
-        match read_doc(&fields) {
-            Ok(doc) => docs.push(doc),
-            Err(e) => errors.push((e, fields)),
-        }
+        cb(match read_doc(&fields) {
+            Ok(doc) => Event::Doc(doc),
+            Err(error) => Event::Error { error, raw: fields },
+        })?;
     }
 
-    for (e, fields) in &errors {
-        println!("Error in doc:");
-        for (name, value) in fields {
-            println!(" * {:?}: {:?}", name, value);
-        }
-        println!("{:?}", e);
-        println!();
-    }
-
-    println!(
-        "{} errors, {} deletions, {} docs",
-        errors.len(),
-        deletions.len(),
-        docs.len()
-    );
-
-    docs.retain(|v| !deletions.contains(&v.id));
-
-    println!("{} live docs", docs.len());
-
-    Ok(docs)
+    Ok(())
 }
 
 fn read_doc(fields: &[(String, String)]) -> Result<Doc, Error> {
@@ -360,11 +350,43 @@ impl<R: BufRead> DataInput<R> {
 #[test]
 fn sample() -> Result<(), Error> {
     use std::fs;
-    let docs = read(io::BufReader::new(fs::File::open("sample-index").unwrap()))?;
-    for d in docs {
-        if d.id.group == "com.google.guava" && d.id.artifact == "guava" {
-            println!("{:?} {:?}", d.id, d.object_info);
+    let from = io::BufReader::new(fs::File::open("sample-index").unwrap());
+    let mut errors = 0;
+    read(from, |event| {
+        match event {
+            Event::Doc(d) => {
+                if d.id.group == "com.google.guava" && d.id.artifact == "guava" {
+                    println!("{:?} {:?}", d.id, d.object_info);
+                }
+            }
+            Event::Error { .. } => errors += 1,
+            Event::Delete(_) => (),
         }
-    }
+        Ok(())
+    })?;
+    println!("..and {} errors", errors);
     Ok(())
+}
+
+#[cfg(never)]
+fn print() {
+    for (e, fields) in &errors {
+        println!("Error in doc:");
+        for (name, value) in fields {
+            println!(" * {:?}: {:?}", name, value);
+        }
+        println!("{:?}", e);
+        println!();
+    }
+
+    println!(
+        "{} errors, {} deletions, {} docs",
+        errors.len(),
+        deletions.len(),
+        docs.len()
+    );
+
+    docs.retain(|v| !deletions.contains(&v.id));
+
+    println!("{} live docs", docs.len());
 }
