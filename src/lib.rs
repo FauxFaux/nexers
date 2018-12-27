@@ -32,18 +32,18 @@ struct You {
 
 struct Trail {
     sources: String,
-    packaging: Packaging,
+    packaging: String,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct Eye {
-    packaging_1: Packaging,
+    packaging_1: String,
     some_time: u64,
     size: Option<u64>,
     flag_1: u8,
     flag_2: u8,
     flag_3: u8,
-    packaging_2: Packaging,
+    packaging_2: String,
 }
 
 struct Doc {
@@ -67,6 +67,9 @@ pub fn read<R: Read>(f: R) -> Result<(), Error> {
 
     loop {
         let fields = read_fields(&mut f).with_context(|_| err_msg("reading fields"))?;
+        if fields.iter().find(|(key, _value)| "del" == key).is_some() {
+            continue;
+        }
         match read_doc(&fields) {
             Ok(doc) => docs.push(doc),
             Err(e) => {
@@ -159,7 +162,8 @@ fn read_field<R: Read>(f: &mut DataInput<R>) -> Result<(String, String), Error> 
 }
 
 fn read_checksum(value: &str) -> Result<[u8; 20], Error> {
-    let decoded = hex::decode(value)?;
+    let decoded = hex::decode(value)
+        .with_context(|_| err_msg("decoding checksum"))?;
     ensure!(20 == decoded.len(), "checksum was wrong length");
     let mut arr = [0u8; 20];
     arr.copy_from_slice(&decoded);
@@ -189,7 +193,7 @@ fn read_u(value: &str) -> Result<You, Error> {
 fn read_i(value: &str) -> Result<Eye, Error> {
     let mut parts = value.split('|');
     Ok(Eye {
-        packaging_1: Packaging::parse(parts.next().ok_or_else(|| err_msg("short i: p1"))?)?,
+        packaging_1: parts.next().ok_or_else(|| err_msg("short i: p1"))?.to_string(),
         some_time: parts
             .next()
             .ok_or_else(|| err_msg("short i: time"))?
@@ -211,7 +215,7 @@ fn read_i(value: &str) -> Result<Eye, Error> {
             .ok_or_else(|| err_msg("short i: flag 3"))?
             .parse::<u8>()
             .with_context(|_| err_msg("reading flag 3"))?,
-        packaging_2: Packaging::parse(parts.next().ok_or_else(|| err_msg("short i: p2"))?)?,
+        packaging_2: parts.next().ok_or_else(|| err_msg("short i: p2"))?.to_string(),
     })
 }
 
@@ -225,44 +229,6 @@ fn read_size(value: &str) -> Result<Option<u64>, Error> {
             .parse::<u64>()
             .with_context(|_| err_msg("reading size"))?,
     ))
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-enum Packaging {
-    Jar,
-    Pom,
-    War,
-    Plugin,
-    Bundle,
-    Zip,
-    Xml,
-    JavadocJar,
-    TarGz,
-    DistZip,
-    DistTgz,
-
-    // xstream|xstream|1.2.2 i: null|1182839150000|-1|0|0|0|pom
-    Null,
-}
-
-impl Packaging {
-    fn parse(value: &str) -> Result<Packaging, Error> {
-        Ok(match value {
-            "jar" => Packaging::Jar,
-            "pom" => Packaging::Pom,
-            "war" => Packaging::War,
-            "plugin" => Packaging::Plugin,
-            "bundle" => Packaging::Bundle,
-            "zip" => Packaging::Zip,
-            "xml" => Packaging::Xml,
-            "javadoc.jar" => Packaging::JavadocJar,
-            "tar.gz" => Packaging::TarGz,
-            "distribution-zip" => Packaging::DistZip,
-            "distribution-tgz" => Packaging::DistTgz,
-            "null" => Packaging::Null,
-            other => bail!("invalid packaging: {:?}", other),
-        })
-    }
 }
 
 struct DataInput<R: Read> {
