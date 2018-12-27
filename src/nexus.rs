@@ -15,6 +15,8 @@ use maplit::hashset;
 
 use crate::java::DataInput;
 
+pub type Checksum = [u8; 20];
+
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct UniqId {
     pub group: String,
@@ -42,7 +44,7 @@ pub struct Doc {
     pub modified: u64,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub checksum: Option<[u8; 20]>,
+    pub checksum: Option<Checksum>,
 }
 
 #[derive(Debug)]
