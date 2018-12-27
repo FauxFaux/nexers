@@ -26,32 +26,29 @@ bitflags! {
     }
 }
 
-struct You {
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct UniqId {
     group: String,
     artifact: String,
     version: String,
-    trail: Option<Trail>,
-}
-
-struct Trail {
-    sources: String,
-    packaging: String,
+    classifier: Option<String>,
+    extension: Option<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct Eye {
-    packaging_1: String,
-    some_time: u64,
+struct FullInfo {
+    packaging: String,
+    last_modified: u64,
     size: Option<u64>,
     source_attached: AttachmentStatus,
     javadoc_attached: AttachmentStatus,
     signature_attached: AttachmentStatus,
-    packaging_2: String,
+    extension: String,
 }
 
 pub struct Doc {
-    you: You,
-    eye: Eye,
+    id: UniqId,
+    object_info: FullInfo,
     modified: u64,
     name: Option<String>,
     description: Option<String>,
@@ -134,12 +131,14 @@ fn read_doc(fields: &[(String, String)]) -> Result<Doc, Error> {
     for (field_name, value) in fields {
         match field_name.as_str() {
             "u" => {
-                you =
-                    Some(read_u(&value).with_context(|_| format_err!("reading 'u': {:?}", value))?)
+                you = Some(
+                    read_uniq(&value).with_context(|_| format_err!("reading 'u': {:?}", value))?,
+                )
             }
             "i" => {
-                eye =
-                    Some(read_i(&value).with_context(|_| format_err!("reading 'i': {:?}", value))?)
+                eye = Some(
+                    read_info(&value).with_context(|_| format_err!("reading 'i': {:?}", value))?,
+                )
             }
             "m" => {
                 modified = Some(
@@ -157,8 +156,8 @@ fn read_doc(fields: &[(String, String)]) -> Result<Doc, Error> {
     }
 
     Ok(Doc {
-        you: you.ok_or_else(|| err_msg("no 'u'"))?,
-        eye: eye.ok_or_else(|| err_msg("no 'i'"))?,
+        id: you.ok_or_else(|| err_msg("no 'u'"))?,
+        object_info: eye.ok_or_else(|| err_msg("no 'i'"))?,
         modified: modified.ok_or_else(|| err_msg("no modified"))?,
         name,
         description,
@@ -208,53 +207,59 @@ fn read_checksum(value: &str) -> Result<[u8; 20], Error> {
     Ok(arr)
 }
 
-fn read_u(value: &str) -> Result<You, Error> {
+fn read_uniq(value: &str) -> Result<UniqId, Error> {
     let mut parts = value.split('|');
-    Ok(You {
+
+    Ok(UniqId {
         group: parts
             .next()
-            .ok_or_else(|| err_msg("short i: p1"))?
+            .ok_or_else(|| err_msg("short uniq: group"))?
             .to_string(),
         artifact: parts
             .next()
-            .ok_or_else(|| err_msg("short i: p1"))?
+            .ok_or_else(|| err_msg("short uniq: artifact"))?
             .to_string(),
         version: parts
             .next()
-            .ok_or_else(|| err_msg("short i: p1"))?
+            .ok_or_else(|| err_msg("short uniq: version"))?
             .to_string(),
-        // TODO
-        trail: None,
+        classifier: not_na(
+            parts
+                .next()
+                .ok_or_else(|| err_msg("short uniq: classifier"))?,
+        )
+        .map(|v| v.to_string()),
+        extension: parts.next().map(|v| v.to_string()),
     })
 }
 
-fn read_i(value: &str) -> Result<Eye, Error> {
+fn read_info(value: &str) -> Result<FullInfo, Error> {
     let mut parts = value.split('|');
-    Ok(Eye {
-        packaging_1: parts
+    Ok(FullInfo {
+        packaging: parts
             .next()
-            .ok_or_else(|| err_msg("short i: p1"))?
+            .ok_or_else(|| err_msg("short info: packaging"))?
             .to_string(),
-        some_time: parts
+        last_modified: parts
             .next()
-            .ok_or_else(|| err_msg("short i: time"))?
+            .ok_or_else(|| err_msg("short info: time"))?
             .parse::<u64>()
             .with_context(|_| err_msg("reading time"))?,
         size: read_size(parts.next().ok_or_else(|| err_msg("short i: size"))?)?,
         source_attached: AttachmentStatus::read(
             parts
                 .next()
-                .ok_or_else(|| err_msg("short i: sources flag"))?,
+                .ok_or_else(|| err_msg("short info: sources flag"))?,
         )?,
         javadoc_attached: AttachmentStatus::read(
-            parts.next().ok_or_else(|| err_msg("short i: flag 2"))?,
+            parts.next().ok_or_else(|| err_msg("short info: flag 2"))?,
         )?,
         signature_attached: AttachmentStatus::read(
-            parts.next().ok_or_else(|| err_msg("short i: flag 3"))?,
+            parts.next().ok_or_else(|| err_msg("short info: flag 3"))?,
         )?,
-        packaging_2: parts
+        extension: parts
             .next()
-            .ok_or_else(|| err_msg("short i: p2"))?
+            .ok_or_else(|| err_msg("short info: extension"))?
             .to_string(),
     })
 }
@@ -269,6 +274,14 @@ fn read_size(value: &str) -> Result<Option<u64>, Error> {
             .parse::<u64>()
             .with_context(|_| err_msg("reading size"))?,
     ))
+}
+
+fn not_na(value: &str) -> Option<&str> {
+    if "NA" == value {
+        None
+    } else {
+        Some(value)
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
