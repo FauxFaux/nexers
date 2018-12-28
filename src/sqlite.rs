@@ -1,15 +1,14 @@
-use std::collections::HashMap;
-
 use cast::i64;
 use failure::Error;
 use insideout::InsideOut;
+use lru::LruCache;
 use rusqlite::types::ToSql;
 use rusqlite::OptionalExtension;
 
 use crate::nexus::AttachmentStatus;
 use crate::nexus::Doc;
 
-type Cache = HashMap<String, i64>;
+type Cache = LruCache<String, i64>;
 
 pub struct Db<'t> {
     conn: rusqlite::Transaction<'t>,
@@ -21,8 +20,8 @@ impl<'t> Db<'t> {
     pub fn new(conn: rusqlite::Transaction) -> Result<Db, Error> {
         Ok(Db {
             conn,
-            group_cache: Cache::with_capacity(1_000),
-            artifact_cache: Cache::with_capacity(1_000),
+            group_cache: Cache::new(4_096),
+            artifact_cache: Cache::new(4_096),
         })
     }
 
@@ -99,7 +98,7 @@ fn string_write(
     conn: &rusqlite::Transaction,
     table: &'static str,
     cache: &mut Cache,
-    val: &str,
+    val: &String,
 ) -> Result<i64, Error> {
     if let Some(id) = cache.get(val) {
         return Ok(*id);
@@ -117,13 +116,7 @@ fn string_write(
         .prepare_cached(&format!("insert into {} (name) values (?)", table))?
         .insert(&[val])?;
 
-    if cache.len() >= 8192 {
-        let target = (new_id % 3) as i64;
-        cache.retain(|_name, id| *id % 3 == target);
-        println!("bye, {} cache!", table);
-    }
-
-    cache.insert(val.to_string(), new_id);
+    cache.put(val.to_string(), new_id);
 
     Ok(new_id)
 }

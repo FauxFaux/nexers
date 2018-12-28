@@ -8,9 +8,7 @@ fn main() -> Result<(), Error> {
     use std::fs;
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let mut errors = 0;
-    let mut sql = rusqlite::Connection::
-        open("search.db")?;
-//        open_in_memory()?;
+    let mut sql = rusqlite::Connection::open("search.db")?;
     sql.execute_batch(include_str!("../schema.sql"))?;
     let tran = sql.transaction()?;
     let mut db = nexers::sqlite::Db::new(tran)?;
