@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use cast::i64;
+use failure::err_msg;
 use failure::Error;
 use insideout::InsideOut;
 use rusqlite::types::ToSql;
@@ -214,17 +215,21 @@ fn string_write(
         return Ok(*id);
     }
 
-    if let Some(id) = conn
-        .prepare_cached(&format!("select id from {} where name=?", table))?
-        .query_row(&[val], |row| row.get(0))
-        .optional()?
-    {
-        return Ok(id);
-    }
-
-    let new_id = conn
+    let new_id = match conn
         .prepare_cached(&format!("insert into {} (name) values (?)", table))?
-        .insert(&[val])?;
+        .insert(&[val])
+    {
+        Ok(id) => id,
+        Err(rusqlite::Error::SqliteFailure(e, ref _msg))
+            if rusqlite::ErrorCode::ConstraintViolation == e.code =>
+        {
+            conn.prepare_cached(&format!("select id from {} where name=?", table))?
+                .query_row(&[val], |row| row.get(0))
+                .optional()?
+                .ok_or_else(|| err_msg("constraint violation, but row didn't exist"))?
+        }
+        Err(e) => Err(e)?,
+    };
 
     cache.insert(val.to_string(), new_id);
 
