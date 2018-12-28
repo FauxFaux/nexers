@@ -18,6 +18,13 @@ create table artifact_version (
   version_id integer not null --> versions(id)
 );
 
+create table full_descriptions (
+  id integer primary key,
+  name varchar not null,
+  description varchar not null,
+  unique (name, description)
+);
+
 create table versions (
   id integer primary key,
   last_modified timestamp not null,
@@ -25,11 +32,10 @@ create table versions (
   source_attached boolean,
   javadoc_attached boolean,
   signature_attached boolean,
+  name_desc_id integer not null,
   version varchar not null,
   classifier varchar,
   packaging varchar,
   extension varchar,
-  name varchar,
-  description varchar,
   checksum varchar
 );

@@ -14,15 +14,27 @@ pub struct Db<'t> {
     conn: rusqlite::Transaction<'t>,
     group_cache: Cache,
     artifact_cache: Cache,
+    name_desc_cache: LruCache<(String, String), i64>,
 }
 
 impl<'t> Db<'t> {
     pub fn new(conn: rusqlite::Transaction) -> Result<Db, Error> {
-        Ok(Db {
+        let mut us = Db {
             conn,
             group_cache: Cache::new(4_096),
             artifact_cache: Cache::new(4_096),
-        })
+            name_desc_cache: LruCache::new(4_096),
+        };
+
+        // ensure the blank name/desc gets id=0; small in the db
+        name_desc_write(
+            &mut us.conn,
+            &mut us.name_desc_cache,
+            &Some(String::new()),
+            &Some(String::new()),
+        )?;
+
+        Ok(us)
     }
 
     pub fn commit(self) -> Result<(), Error> {
@@ -43,6 +55,13 @@ impl<'t> Db<'t> {
             &doc.id.artifact,
         )?;
 
+        let desc_name = name_desc_write(
+            &self.conn,
+            &mut self.name_desc_cache,
+            &doc.name,
+            &doc.description,
+        )?;
+
         let version_id = self
             .conn
             .prepare_cached(
@@ -54,14 +73,13 @@ insert into versions
    source_attached,
    javadoc_attached,
    signature_attached,
+   name_desc_id,
    version,
    classifier,
    packaging,
    extension,
-   name,
-   description,
    checksum
-  ) values (?,?,?,?,?,?,?,?,?,?,?,?)
+  ) values (?,?,?,?,?,?,?,?,?,?,?)
 ",
             )?
             .insert(&[
@@ -70,12 +88,11 @@ insert into versions
                 &attached_bool(doc.object_info.source_attached),
                 &attached_bool(doc.object_info.javadoc_attached),
                 &attached_bool(doc.object_info.signature_attached),
+                &desc_name,
                 &doc.id.version,
                 &doc.id.classifier,
                 &doc.object_info.packaging,
                 &doc.object_info.extension,
-                &doc.name,
-                &doc.description,
                 &doc.checksum.map(|arr| hex::encode(arr)),
             ])?;
 
@@ -117,6 +134,36 @@ fn string_write(
         .insert(&[val])?;
 
     cache.put(val.to_string(), new_id);
+
+    Ok(new_id)
+}
+
+fn name_desc_write(
+    conn: &rusqlite::Transaction,
+    cache: &mut LruCache<(String, String), i64>,
+    name: &Option<String>,
+    desc: &Option<String>,
+) -> Result<i64, Error> {
+    let name = name.clone().unwrap_or_default();
+    let desc = desc.clone().unwrap_or_default();
+
+    if let Some(id) = cache.get(&(name.to_string(), desc.to_string())) {
+        return Ok(*id);
+    }
+
+    if let Some(id) = conn
+        .prepare_cached("select id from full_descriptions where name=? and description=?")?
+        .query_row(&[&name, &desc], |row| row.get(0))
+        .optional()?
+    {
+        return Ok(id);
+    }
+
+    let new_id = conn
+        .prepare_cached("insert into full_descriptions (name, description) values (?,?)")?
+        .insert(&[&name, &desc])?;
+
+    cache.put((name, desc), new_id);
 
     Ok(new_id)
 }
