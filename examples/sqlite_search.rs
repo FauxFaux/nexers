@@ -18,7 +18,7 @@ fn main() -> Result<(), Error> {
 
     let writer = thread::spawn(|| write(recv));
 
-    nexers::read(from, |event| {
+    let local_error = nexers::read(from, |event| {
         match event {
             Event::Doc(d) => send.send(d)?,
 
@@ -26,11 +26,13 @@ fn main() -> Result<(), Error> {
             Event::Delete(_) => (),
         }
         Ok(())
-    })?;
+    });
 
     mem::drop(send);
 
     writer.join().map_err(|e| format_err!("panic: {:?}", e))??;
+
+    local_error?;
 
     println!("..and {} errors", errors);
 
