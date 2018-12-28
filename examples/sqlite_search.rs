@@ -1,7 +1,6 @@
 use std::fs;
 use std::io;
 use std::mem;
-use std::sync::mpsc;
 use std::thread;
 
 use failure::format_err;
@@ -10,11 +9,14 @@ use failure::Error;
 use nexers::Doc;
 use nexers::Event;
 
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 fn main() -> Result<(), Error> {
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let mut errors = 0;
 
-    let (send, recv) = mpsc::sync_channel(65_536);
+    let (send, recv) = crossbeam_channel::bounded(65_536);
 
     let writer = thread::spawn(|| write(recv));
 
@@ -49,7 +51,7 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn write(recv: mpsc::Receiver<Doc>) -> Result<(), Error> {
+fn write(recv: crossbeam_channel::Receiver<Doc>) -> Result<(), Error> {
     let mut sql = rusqlite::Connection::open("search.db")?;
     sql.execute_batch(include_str!("../schema.sql"))?;
     let tran = sql.transaction()?;

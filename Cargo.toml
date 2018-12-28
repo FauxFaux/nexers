@@ -15,6 +15,10 @@ insideout = "0.2"
 lru = "0.1"
 maplit = "1"
 
+[dev-dependencies]
+crossbeam-channel = "0.3"
+jemallocator = "0.1"
+
 [dependencies.rusqlite]
 version = "0.16.0"
 features = ["bundled"]
