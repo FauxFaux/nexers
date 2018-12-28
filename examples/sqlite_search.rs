@@ -16,7 +16,7 @@ fn main() -> Result<(), Error> {
 
     let (send, recv) = mpsc::sync_channel(1_024);
 
-    let writer = write(recv);
+    let writer = thread::spawn(|| write(recv));
 
     nexers::read(from, |event| {
         match event {
@@ -39,26 +39,24 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn write(recv: mpsc::Receiver<Doc>) -> thread::JoinHandle<Result<(), Error>> {
-    thread::spawn(move || -> Result<(), Error> {
-        let mut sql = rusqlite::Connection::open("search.db")?;
-        sql.execute_batch(include_str!("../schema.sql"))?;
-        let tran = sql.transaction()?;
-        let mut db = nexers::sqlite::Db::new(tran)?;
+fn write(recv: mpsc::Receiver<Doc>) -> Result<(), Error> {
+    let mut sql = rusqlite::Connection::open("search.db")?;
+    sql.execute_batch(include_str!("../schema.sql"))?;
+    let tran = sql.transaction()?;
+    let mut db = nexers::sqlite::Db::new(tran)?;
 
-        let mut pos = 0usize;
+    let mut pos = 0usize;
 
-        while let Some(doc) = recv.recv().ok() {
-            pos += 1;
-            if 0 == pos % 10000 {
-                println!("{}", pos);
-            }
-
-            db.add(&doc)?;
+    while let Some(doc) = recv.recv().ok() {
+        pos += 1;
+        if 0 == pos % 10000 {
+            println!("{}", pos);
         }
 
-        db.commit()?;
+        db.add(&doc)?;
+    }
 
-        Ok(())
-    })
+    db.commit()?;
+
+    Ok(())
 }
