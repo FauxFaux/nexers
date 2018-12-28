@@ -21,9 +21,9 @@ impl<'t> Db<'t> {
     pub fn new(conn: rusqlite::Transaction) -> Result<Db, Error> {
         let mut us = Db {
             conn,
-            group_cache: Cache::new(4_096),
-            artifact_cache: Cache::new(4_096),
-            name_desc_cache: LruCache::new(4_096),
+            group_cache: Cache::new(8 * 4_096),
+            artifact_cache: Cache::new(8 * 4_096),
+            name_desc_cache: LruCache::new(8 * 4_096),
         };
 
         // ensure the blank name/desc gets id=0; small in the db
