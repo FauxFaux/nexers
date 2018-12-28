@@ -14,13 +14,21 @@ fn main() -> Result<(), Error> {
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let mut errors = 0;
 
-    let (send, recv) = mpsc::sync_channel(1_024);
+    let (send, recv) = mpsc::sync_channel(65_536);
 
     let writer = thread::spawn(|| write(recv));
 
+    let mut pos = 0usize;
+
     let local_error = nexers::read(from, |event| {
         match event {
-            Event::Doc(d) => send.send(d)?,
+            Event::Doc(d) => {
+                pos += 1;
+                if 0 == pos % 100_000 {
+                    println!("in: {}", pos);
+                }
+                send.send(d)?
+            },
 
             Event::Error { .. } => errors += 1,
             Event::Delete(_) => (),
@@ -51,8 +59,8 @@ fn write(recv: mpsc::Receiver<Doc>) -> Result<(), Error> {
 
     while let Some(doc) = recv.recv().ok() {
         pos += 1;
-        if 0 == pos % 10000 {
-            println!("{}", pos);
+        if 0 == pos % 100_000 {
+            println!("ou: {:?}", pos);
         }
 
         db.add(&doc)?;
