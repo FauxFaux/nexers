@@ -20,15 +20,9 @@ fn main() -> Result<(), Error> {
 
     let writer = thread::spawn(|| write(recv));
 
-    let mut pos = 0usize;
-
     let local_error = nexers::read(from, |event| {
         match event {
             Event::Doc(d) => {
-                pos += 1;
-                if 0 == pos % 100_000 {
-                    println!("in: {}", pos);
-                }
                 send.send(d)?
             },
 
@@ -60,12 +54,12 @@ fn write(recv: crossbeam_channel::Receiver<Doc>) -> Result<(), Error> {
     let mut pos = 0usize;
 
     while let Some(doc) = recv.recv().ok() {
+        db.add(&doc)?;
+
         pos += 1;
         if 0 == pos % 100_000 {
-            println!("ou: {:?}", pos);
+            println!("written: {:?}", pos);
         }
-
-        db.add(&doc)?;
     }
 
     db.commit()?;

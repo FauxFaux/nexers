@@ -1,29 +1,30 @@
+use std::collections::HashMap;
+
 use cast::i64;
 use failure::Error;
 use insideout::InsideOut;
-use lru::LruCache;
 use rusqlite::types::ToSql;
 use rusqlite::OptionalExtension;
 
 use crate::nexus::AttachmentStatus;
 use crate::nexus::Doc;
 
-type Cache = LruCache<String, i64>;
+type Cache = HashMap<String, i64>;
 
 pub struct Db<'t> {
     conn: rusqlite::Transaction<'t>,
     group_cache: Cache,
     artifact_cache: Cache,
-    name_desc_cache: LruCache<(String, String), i64>,
+    name_desc_cache: HashMap<(String, String), i64>,
 }
 
 impl<'t> Db<'t> {
     pub fn new(conn: rusqlite::Transaction) -> Result<Db, Error> {
         let mut us = Db {
             conn,
-            group_cache: Cache::new(8 * 4_096),
-            artifact_cache: Cache::new(8 * 4_096),
-            name_desc_cache: LruCache::new(8 * 4_096),
+            group_cache: Cache::with_capacity(40 * 1_024),
+            artifact_cache: Cache::with_capacity(200 * 1_024),
+            name_desc_cache: HashMap::with_capacity(100 * 1_024),
         };
 
         // ensure the blank name/desc gets id=0; small in the db
@@ -133,14 +134,14 @@ fn string_write(
         .prepare_cached(&format!("insert into {} (name) values (?)", table))?
         .insert(&[val])?;
 
-    cache.put(val.to_string(), new_id);
+    cache.insert(val.to_string(), new_id);
 
     Ok(new_id)
 }
 
 fn name_desc_write(
     conn: &rusqlite::Transaction,
-    cache: &mut LruCache<(String, String), i64>,
+    cache: &mut HashMap<(String, String), i64>,
     name: &Option<String>,
     desc: &Option<String>,
 ) -> Result<i64, Error> {
@@ -163,7 +164,7 @@ fn name_desc_write(
         .prepare_cached("insert into full_descriptions (name, description) values (?,?)")?
         .insert(&[&name, &desc])?;
 
-    cache.put((name, desc), new_id);
+    cache.insert((name, desc), new_id);
 
     Ok(new_id)
 }
