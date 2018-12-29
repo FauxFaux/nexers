@@ -10,14 +10,34 @@ use nexers::sqlite;
 use nexers::Doc;
 use nexers::Event;
 
+#[cfg(feature = "jemallocator")]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
+#[cfg(feature = "crossbeam-channel")]
+mod channel {
+    pub type Sender = crossbeam_channel::Sender<super::Doc>;
+    pub type Receiver = crossbeam_channel::Receiver<super::Doc>;
+    pub fn new() -> (Sender, Receiver) {
+        crossbeam_channel::bounded(65_536)
+    }
+}
+
+#[cfg(not(feature = "crossbeam-channel"))]
+mod channel {
+    use std::sync::mpsc;
+    pub type Sender = mpsc::SyncSender<super::Doc>;
+    pub type Receiver = mpsc::Receiver<super::Doc>;
+    pub fn new() -> (Sender, Receiver) {
+        mpsc::sync_channel(65_536)
+    }
+}
 
 fn main() -> Result<(), Error> {
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let mut errors = 0;
 
-    let (send, recv) = crossbeam_channel::bounded(65_536);
+    let (send, recv) = channel::new();
 
     let writer = thread::spawn(|| write(recv));
 
@@ -42,7 +62,7 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn write(recv: crossbeam_channel::Receiver<Doc>) -> Result<(), Error> {
+fn write(recv: channel::Receiver) -> Result<(), Error> {
     let mut sql = rusqlite::Connection::open("search.db")?;
     sql.execute_batch(include_str!("../schema.sql"))?;
     let tran = sql.transaction()?;
