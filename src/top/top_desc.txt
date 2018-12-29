@@ -1,0 +1,256 @@
+${project.name}
+A custom wso2 products or solution
+ammonite-sshd
+ammonite
+Grails Web Application Framework
+ammonite-repl
+core
+ammonite-shell
+Groovy: A powerful, dynamic language for the JVM
+ammonite-compiler
+This is the core module of the project.
+Nepxion Discovery is an enhancement for Spring Cloud Discovery
+Opinionated rest microservices
+JRS GWT commons
+AVSystem commons library for Scala
+This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file.
+Java library to map flat record - ResultSet, csv - to java object with minimum configuration and low footprint.
+A Cohesive & Pragmatic Framework of FP centric Scala libraries
+ammonite-util
+ammonite-runtime
+This is a core module of the project.
+Random small libraries for Kotlin.
+Enterprise open source portal built by and for the higher education community.
+GORM - Grails Data Access Framework
+Incremental compiler of Scala
+Pegasus is a framework for building robust, scalable service architectures using dynamic discovery and simple asychronous type-checked REST + JSON APIs.
+A collection of core tools I use
+Java-based middleware for in-memory processing of big data in a distributed environment.
+A distributed tracing system
+A custom wso2 product
+bboss is a j2ee framework include aop/ioc,mvc,persistent,taglib,rpc,event ,bean-xml serializable and so on.http://www.bbossgroups.com
+Util module for sbt
+A general programming library in Java
+IronJacamar is an implementation of the Java EE Connector Architecture 1.6 specification
+High level repository for sensors that use mraa
+The Fabric8 Online Platform
+Key Management Rest API utility and Extensions
+Crazy Yak
+ammonite-ops
+macros
+ammonite-terminal
+A generic library for android app building.
+IronJacamar is an implementation of the Java EE Connector Architecture 1.7 specification
+ammonite-interp
+an open source solution to application performance monitoring for java server applications
+Someone forgot to fill this in.  See http://stackoverflow.com/questions/38272550/how-to-fail-the-gradle-build-if-subproject-is-missing-a-property
+Ciris
+Fabric3
+[Jenkins](http://jenkins-ci.org/) extendable open source continuous integration server using OpenShift Jenkins image
+Standalone Neo4j server application.
+monix
+Liferay Gradle Plugins Defaults
+Keycloak for use with postgresql
+The APIs described here are needed for developing plugins for GoCD - A continuous delivery server
+Management support using JMX.
+Fast and reliable message broker built on top of Kafka.
+Jresearch root pom
+Simple refinement types for Scala
+cas-server
+Liferay Gradle Plugins
+The Apache Cassandra Project develops a highly scalable second-generation distributed database, bringing together Dynamo's fully distributed design and Bigtable's ColumnFamily-based data model.
+scalaz-scalacheck-binding
+Nepxion Aquarius is a list of distribution components based on Redis + Zookeeper with Nepxion Matrix AOP framework
+Identity Application Authentication Endpoint
+Eclipse Ditto is a framework for creating and managing digital twins in the IoT.
+Library for building fast, scalable, fault-tolerant Data APIs based on Akka, ZooKeeper and Kafka.
+Coroutines support libraries for Kotlin
+Mongoose is a high-load storage performance testing tool
+scalaz-core
+sbt is an interactive build tool
+scalaz-effect
+scalaz-iteratee
+A DSL modelled around the UNIX pipe concept, that simplifies writing parallel and scalable pipelines in a portable manner
+This module of Akka is marked as experimental, which means that it is in early access mode, which also means that it is not covered by commercial support. An experimental module doesn't have to obey the rule of staying binary compatible between minor releases. Breaking API changes may be introduced in minor releases without notice as we refine and simplify based on your feedback. An experimental module may be dropped in major releases without prior deprecation.
+quasar-core-internal
+quasar-web
+FoBo
+quasar-foundation-internal
+Exposes services externally based on Kubernetes implementation
+quasar-connector-internal
+Android Simple Widgets and Support classes.
+quasar-frontend-internal
+SAP Cloud Platform SDK for service development
+quasar-common-internal
+The Fabric8 Microservices Online :: Team
+specs2-scalacheck
+specs2-matcher
+specs2-core
+Base component for Identity components
+org.wso2.carbon.user.mgt.common
+specs2-mock
+User Identity Entitlement UI component for WSO2 Carbon
+Advanced Claim metadata management for WSO2 Carbon
+Thrift based Service that provides authentication to the server over thrift
+The Application Management backend component
+Server management component's common code goes here.
+This will add/delete server principles to a directory server.
+specs2-common
+User Store Counts retrieval component for WSO2 Carbon
+User Store UI component for WSO2 Carbon
+User Store Configuration Deployment Component for WSO2 Carbon
+User Registration component for WSO2 Carbon
+Platform for Identity Provisioning for WSO2 product stack
+This feature contains the core bundles required for Back-end Identity Core functionality
+This feature contains the bundles required for Identity Core functionality
+Identity Management Endpoint
+Advanced Claim metadata management UI component for WSO2 Carbon
+Application Management UI component for WSO2 Carbon
+Claim Management UI component for WSO2 Carbon
+Claim management for WSO2 Carbon
+specs2-matcher-extra
+specs2-junit
+specs2-analysis
+property based testing library for Scala
+A Repository storing static HTML reports and content from releases
+Scala.js compiler
+[Jenkins](http://jenkins-ci.org/) extendable open source continuous integration server
+JSON API framework for Java
+[elasticsearch](http://elasticsearch.com/) provides distributed RESTful search and analytics
+Status library of the edison-microservice project.
+The hassle-free way to add analytics to your Android app.
+The AWS Java SDK for Amazon CloudWatch Logs module holds the client classes that are used for communicating with Amazon CloudWatch Logs Service
+An alternative Android testing framework.
+This feature contains the core bundles required for API management back end
+Jetty security infrastructure
+The Fabric8 Microservices Online :: Jenkins
+NutzBoot, micoservice base on Nutz
+SnappyData distributed data store and execution engine
+This package holds the classes for uploading the clientside metrics collected from AWS Java SDK to Amazon CloudWatch
+Middleware library based on Vert.x to build advanced JSON/REST communication servers
+This module builds the download wars for different application servers.
+The Fabric8 Microservices Online : Che
+The AWS SDK for Java with support for OSGi. The AWS SDK for Java provides Java APIs for building software on AWS' cost-effective, scalable, and reliable infrastructure products. The AWS Java SDK allows developers to code against APIs for all of Amazon's infrastructure web services (Amazon S3, Amazon EC2, Amazon SQS, Amazon Relational Database Service, Amazon AutoScaling, etc).
+The AWS Java SDK for AWS Support module holds the client classes that are used for communicating with AWS Support Service
+The AWS Java SDK for AWS STS module holds the client classes that are used for communicating with AWS Security Token Service
+The AWS Java SDK for AWS Storage Gateway module holds the client classes that are used for communicating with AWS Storage Gateway Service
+The AWS Java SDK for Amazon SQS module holds the client classes that are used for communicating with Amazon Simple Queue Service
+The AWS Java SDK for Amazon SNS module holds the client classes that are used for communicating with Amazon Simple Notification Service
+The AWS Java SDK for Amazon SWF module holds the client classes that are used for communicating with Amazon Simple Workflow Service
+The AWS Java SDK for Amazon SimpleDB module holds the client classes that are used for communicating with Amazon SimpleDB Service
+The AWS Java SDK for Amazon SES module holds the client classes that are used for communicating with Amazon Simple Email Service
+The AWS Java SDK for Amazon S3 module holds the client classes that are used for communicating with Amazon Simple Storage Service
+The AWS Java SDK for Amazon Route53 module holds the client classes that are used for communicating with Amazon Route53 Service
+The AWS Java SDK for Amazon Redshift module holds the client classes that are used for communicating with Amazon Redshift Service
+The AWS Java SDK for Amazon RDS module holds the client classes that are used for communicating with Amazon Relational Database Service
+The AWS Java SDK for AWS OpsWorks module holds the client classes that are used for communicating with AWS OpsWorks Service
+The AWS Java SDK for AWS Lambda module holds the client classes that are used for communicating with AWS Lambda Service
+The AWS Java SDK for AWS KMS module holds the client classes that are used for communicating with AWS Key Management Service
+The AWS Java SDK for Amazon Kinesis module holds the client classes that are used for communicating with Amazon Kinesis Service
+The AWS Java SDK for AWS Import/Export module holds the client classes that are used for communicating with AWS Import/Export Service
+The AWS Java SDK for AWS IAM module holds the client classes that are used for communicating with AWS Identity and Access Management Service
+The AWS Java SDK for Amazon Glacier module holds the client classes that are used for communicating with Amazon Glacier Service
+The AWS Java SDK for Amazon EMR module holds the client classes that are used for communicating with Amazon Elastic MapReduce Service
+The AWS Java SDK for Amazon Elastic Transcoder module holds the client classes that are used for communicating with Amazon Elastic Transcoder Service
+The AWS Java SDK for AWS Elastic Beanstalk module holds the client classes that are used for communicating with AWS Elastic Beanstalk Service
+The AWS Java SDK for Amazon ElastiCache module holds the client classes that are used for communicating with Amazon ElastiCache Service
+The AWS Java SDK for the Amazon EC2 Container Service holds the client classes that are used for communicating with the Amazon EC2 Container Service
+The AWS Java SDK for Amazon EC2 module holds the client classes that are used for communicating with Amazon EC2 Service
+The AWS Java SDK for Amazon DynamoDB module holds the client classes that are used for communicating with Amazon DynamoDB Service
+The AWS Java SDK for AWS Direct Connect module holds the client classes that are used for communicating with AWS Direct Connect Service
+The AWS Java SDK for AWS Data Pipeline module holds the client classes that are used for communicating with AWS Data Pipeline Service
+The AWS Java SDK for AWS Config module holds the client classes that are used for communicating with AWS Config Service
+The AWS Java SDK for Amazon Cognito Sync module holds the client classes that are used for communicating with Amazon Cognito Sync Service
+The AWS Java SDK for Amazon Cognito Identity module holds the client classes that are used for communicating with Amazon Cognito Identity Service
+The AWS Java SDK for AWS CodeDeploy module holds the client classes that are used for communicating with AWS CodeDeploy Service
+The AWS Java SDK for Amazon CloudWatch module holds the client classes that are used for communicating with Amazon CloudWatch Service
+The AWS Java SDK for AWS CloudTrail module holds the client classes that are used for communicating with AWS CloudTrail Service
+The AWS Java SDK for Amazon CloudSearch module holds the client classes that are used for communicating with Amazon CloudSearch Service
+The AWS Java SDK for AWS CloudHSM holds the client classes that are used for communicating with the AWS CloudHSM Service
+The AWS Java SDK for Amazon CloudFront module holds the client classes that are used for communicating with Amazon CloudFront Service
+The AWS Java SDK for AWS CloudFormation module holds the client classes that are used for communicating with AWS CloudFormation Service
+The AWS Java SDK for Auto Scaling module holds the client classes that are used for communicating with Auto Scaling Service
+Performs Rolling Upgrades to Deployments when ConfigMaps are changed
+[Nexus](http://www.sonatype.org/nexus/) - A maven repository manager
+The AWS Java SDK for AWS Simple Systems Management Service holds the client classes that are used for communicating with the AWS Simple Systems Management Service
+dotty-interfaces
+sbt compiler bridge for Dotty
+The AWS SDK for Java - Test Utils module holds the all the utilities that are used by the tests.
+Instabug Android SDK: In-App feedback for mobile apps!
+The AWS Java SDK for Amazon WorkSpaces module holds the client classes that are used for communicating with Amazon WorkSpaces Service
+The AWS Java SDK for Amazon Machine Learning module holds the client classes that is used for communicating with Amazon Machine Learning Service
+Rundeck
+The AWS Java SDK for AWS Directory Service module holds the client classes that is used for communicating with AWS Directory Service
+The AWS Java SDK for Amazon Elastic File System module holds the client classes that are used for communicating with Amazon Elastic File System
+specs2-markdown
+specs2-html
+specs2-gwt
+specs2-form
+quasar-interface-internal
+The AWS Java SDK for AWS CodePipeline module holds the client classes that are used for communicating with AWS CodePipeline
+The AWS Java SDK for AWS CodeCommit module holds the client classes that are used for communicating with AWS CodeCommit
+The AWS Java SDK for AWS Device Farm module holds the client classes that are used for communicating with AWS Device Farm
+Tioga Solutions
+GeoTrellis is an open source geographic data processing engine for high performance applications.
+scala-library
+JaVers object auditing and diff framework
+WSO2 API Manager Throttle Data Service
+This feature contains the sample pizza shack api
+This feature contains the sample calculator api
+This feature contains required bundles for API Manager Rest API for API publisher functionality
+WSO2 API Manager REST API for API Store
+WSO2 API Manager REST API for API Publisher
+WSO2 Carbon API Manager- Dynamic Client Registration Web
+WSO2 API Manager REST API for Admin Portal
+Key Management Client functionality for API Mgt/Store solution
+Key Management functionality for API Mgt/Store solution
+Single sign on based on OIDC
+OpenID Connect Based SSO Authenticator - UI bundle
+OpenID Connect based Authenticator - BE bundle
+Korio: Kotlin cORoutines I/O : Streams + Async TCP Client/Server + Virtual File System for JVM, Node.JS and Browser
+Watches the OpenShift environment and notifies Hubot of events such as builds completing or failing
+The AWS Java SDK for Amazon Elasticsearch Service module holds the client classes that are used for communicating with Amazon Elasticsearch Service
+JaVers - object auditing and diff framework for Java
+The AWS Java SDK for AWS WAF Service module holds the client classes that are used for communicating with AWS WAF Service
+Identity Application Authentication Endpoint Utilities
+specs2-tests
+The AWS Java SDK for AWS Marketplace Commerce Analytics Service module holds the client classes that are used for communicating with AWS Marketplace Commerce Analytics Service
+The AWS Java SDK for Amazon Inspector Service module holds the client classes that are used for communicating with Amazon Inspector Service
+Collects simple statistics about server deployment.
+Awesome front-end for Elasticsearch
+The AWS Java SDK for AWS Iot Service module holds the client classes that are used for communicating with AWS IoT Service
+[Lets Chat](http://sdelements.github.io/lets-chat/) Self-hosted chat for small teams
+The AWS Java SDK for Amazon API Gateway module holds the client classes that are used for communicating with Amazon API Gateway
+quasar-mongodb-internal
+JVM AOT compiler currently generating JavaScript, C++, Haxe, with initial focus on Kotlin and games.
+(No description)
+Neo4j query language
+quasar-ejson-internal
+Scala.js JUnit test plugin
+The Fabric8 Microservices System
+scalap
+scala-reflect
+scala-compiler
+Stapler HTTP request handling engine
+Actor SDK for Android Google Extension
+quasar-js-internal
+quasar-skeleton-internal
+Bazaarvoice Android SDK
+quasar-effect-internal
+The AWS Java SDK for the Amazon EC2 Container Registry holds the client classes that are used for communicating with the Amazon EC2 Container Registry Service
+[Gerrit](https://code.google.com/p/gerrit/) Web based code review and project management for Git based projects
+quasar-sql-internal
+quasar-couchbase-internal
+The AWS Java SDK for Amazon CloudWatch Events module holds the client classes that are used for communicating with Amazon CloudWatch Events Service
+String
+scalaz
+spark-testing-base
+The AWS Java SDK for AWS Certificate Manager module holds the client classes that are used for communicating with AWS Certificate Manager service.
+quasar-marklogic-internal
+[Hubot](https://hubot.github.com/) adapter to use with [Slack](https://slack.com/)
+[Gogs](http://gogs/) - A self-hosted Git service written in Go
+The AWS Java SDK for AWS GameLift module holds the client classes that are used for communicating with AWS GameLift service.
+The AWS SDK for Java - Code Generator module holds the classes and templates required to generate the AWS Java SDK clients for AWS services.
+json
+Kills random pods for chaos fun!
+The AWS Java SDK for AWS Database Migration Service module holds the client classes that are used for communicating with AWS Database Migration Service.

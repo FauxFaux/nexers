@@ -19,7 +19,7 @@ pub struct Db<'t> {
     artifact_cache: Cache,
     name_cache: Cache,
     desc_cache: Cache,
-    package_cache: Cache,
+    packaging_cache: Cache,
     classifier_cache: Cache,
 }
 
@@ -31,7 +31,7 @@ impl<'t> Db<'t> {
             artifact_cache: ("artifact", HashMap::with_capacity(200 * 1_024)),
             name_cache: ("name", HashMap::with_capacity(40 * 1_024)),
             desc_cache: ("desc", HashMap::with_capacity(40 * 1_024)),
-            package_cache: ("package", HashMap::with_capacity(1_024)),
+            packaging_cache: ("packaging", HashMap::with_capacity(1_024)),
             classifier_cache: ("classifier", HashMap::with_capacity(1_024)),
         };
 
@@ -40,7 +40,7 @@ impl<'t> Db<'t> {
             &us.artifact_cache,
             &us.name_cache,
             &us.desc_cache,
-            &us.package_cache,
+            &us.packaging_cache,
             &us.classifier_cache,
         ] {
             us.conn.execute(
@@ -56,76 +56,14 @@ create table if not exists {}_names (
             )?;
         }
 
-        for artifact in &[
-            "core",
-            "parent",
-            "common",
-            "library",
-            "metrics",
-            "logging",
-            "utils",
-            "bootstrap",
-            "management",
-            "jenkins",
-            "client",
-            "prometheus",
-            "commons",
-            "api",
-            "social",
-            "scala-library",
-            "config",
-            "testing",
-            "sdk",
-            "project",
-            "jmx",
-            "json",
-            "server",
-            "model",
-            "examples",
-        ] {
-            string_write(&mut us.conn, &mut us.artifact_cache, &artifact.to_string())?;
-        }
-
-        // select (select name from group_names where id=group_id) name,cnt from
-        // (select group_id,count(*) cnt from versions group by group_id)
-        // order by cast(cnt/10000 as int) desc,name limit 256;
-        for group in &[
-            "com.google.apis",
-            "com.amazonaws",
-            "org.wso2.carbon.identity.framework",
-            "com.lihaoyi",
-            "org.apache.camel",
-            "org.wso2.carbon.apimgt",
-            "com.liferay",
-            "org.apereo.cas",
-            "org.webjars.npm",
-        ] {
-            string_write(&mut us.conn, &mut us.group_cache, &group.to_string())?;
-        }
-
-        for name in &[
-            "${project.groupId}:${project.artifactId}",
-            "${project.artifactId}",
-            "${project.groupId}.${project.artifactId}",
-            "core",
-            "Grails",
-            "Groovy",
-            "Apache ServiceMix :: Bundles :: ${pkgArtifactId}",
-            "Restcomm :: Diameter Resources",
-            "Restcomm :: Resources :: ${pom.artifactId}",
-        ] {
-            string_write(&mut us.conn, &mut us.name_cache, &name.to_string())?;
-        }
-
-        for desc in &[
-            "${project.name}",
-            "Grails Web Application Framework",
-            "Groovy: A powerful, dynamic language for the JVM",
-            "core",
-            "This is the core module of the project.",
-            "This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file.",
-        ] {
-            string_write(&mut us.conn, &mut us.desc_cache, &desc.to_string())?;
+        #[cfg_attr(rustfmt, rustfmt::skip)]
+        {
+            write_examples(&us.conn, &mut us.group_cache, include_str!("top/top_group.txt"))?;
+            write_examples(&us.conn, &mut us.artifact_cache, include_str!("top/top_artifact.txt"))?;
+            write_examples(&us.conn, &mut us.classifier_cache, include_str!("top/top_classifier.txt"))?;
+            write_examples(&us.conn, &mut us.packaging_cache, include_str!("top/top_packaging.txt"))?;
+            write_examples(&us.conn, &mut us.name_cache, include_str!("top/top_name.txt"))?;
+            write_examples(&us.conn, &mut us.desc_cache, include_str!("top/top_desc.txt"))?;
         }
 
         Ok(us)
@@ -141,7 +79,7 @@ create table if not exists {}_names (
         let name_name = option_write(&self.conn, &mut self.name_cache, doc.name.as_ref())?;
         let desc_name = option_write(&self.conn, &mut self.desc_cache, doc.description.as_ref())?;
 
-        let shared_cache = &mut self.package_cache;
+        let shared_cache = &mut self.packaging_cache;
         let pkg_name = option_write(&self.conn, shared_cache, Some(&doc.object_info.packaging))?;
         let ext_name = string_write(&self.conn, shared_cache, &doc.object_info.extension)?;
 
@@ -220,7 +158,12 @@ fn string_write(
         return Ok(*id);
     }
 
-    ensure!(empty_filter(val.trim()), "illegal string: {}: {:?}", table, val);
+    ensure!(
+        empty_filter(val.trim()),
+        "illegal string: {}: {:?}",
+        table,
+        val
+    );
 
     let new_id = match conn
         .prepare_cached(&format!("insert into {}_names (name) values (?)", table))?
@@ -241,6 +184,18 @@ fn string_write(
     cache.insert(val.to_string(), new_id);
 
     Ok(new_id)
+}
+
+#[inline]
+fn write_examples(
+    conn: &rusqlite::Transaction,
+    cache: &mut Cache,
+    contents: &'static str,
+) -> Result<(), Error> {
+    for line in contents.trim().split('\n') {
+        string_write(conn, cache, &line.trim().to_string())?;
+    }
+    Ok(())
 }
 
 fn attached_bool(status: AttachmentStatus) -> Option<bool> {
