@@ -35,15 +35,22 @@ impl<'t> DbBuilder<'t> {
             classifier_cache: ("classifier", HashMap::with_capacity(1_024)),
         };
 
+        us.create_string_tables()?;
+        us.write_examples()?;
+
+        Ok(us)
+    }
+
+    pub fn create_string_tables(&self) -> Result<(), Error> {
         for (name, _cache) in &[
-            &us.group_cache,
-            &us.artifact_cache,
-            &us.name_cache,
-            &us.desc_cache,
-            &us.packaging_cache,
-            &us.classifier_cache,
+            &self.group_cache,
+            &self.artifact_cache,
+            &self.name_cache,
+            &self.desc_cache,
+            &self.packaging_cache,
+            &self.classifier_cache,
         ] {
-            us.conn.execute(
+            self.conn.execute(
                 &format!(
                     r"
 create table if not exists {}_names (
@@ -56,37 +63,22 @@ create table if not exists {}_names (
             )?;
         }
 
-        #[cfg_attr(rustfmt, rustfmt::skip)]
-        {
-            write_examples(&us.conn, &mut us.group_cache, include_str!("top/top_group.txt"))?;
-            write_examples(&us.conn, &mut us.artifact_cache, include_str!("top/top_artifact.txt"))?;
-            write_examples(&us.conn, &mut us.classifier_cache, include_str!("top/top_classifier.txt"))?;
-            write_examples(&us.conn, &mut us.packaging_cache, include_str!("top/top_packaging.txt"))?;
-            write_examples(&us.conn, &mut us.name_cache, include_str!("top/top_name.txt"))?;
-            write_examples(&us.conn, &mut us.desc_cache, include_str!("top/top_desc.txt"))?;
-        }
-
-        Ok(us)
+        Ok(())
     }
 
-    pub fn find_versions(&self, group: &str, artifact: &str) -> Result<Vec<String>, Error> {
-        let group_name: i64 = self
-            .conn
-            .prepare_cached("select id from group_names where name=?")?
-            .query_row(&[group], |r| r.get(0))?;
-        let artifact_name: i64 = self
-            .conn
-            .prepare_cached("select id from artifact_names where name=?")?
-            .query_row(&[artifact], |r| r.get(0))?;
-        Ok(self
-            .conn
-            .prepare_cached("select version from versions where group_id=? and artifact_id=?")?
-            .query_map(&[group_name, artifact_name], |row| row.get(0))?
-            .collect::<Result<Vec<String>, _>>()?)
+    #[cfg_attr(rustfmt, rustfmt::skip)]
+    pub fn write_examples(&mut self) -> Result<(), Error> {
+        write_examples(&self.conn, &mut self.group_cache,      include_str!("top/top_group.txt"))?;
+        write_examples(&self.conn, &mut self.artifact_cache,   include_str!("top/top_artifact.txt"))?;
+        write_examples(&self.conn, &mut self.classifier_cache, include_str!("top/top_classifier.txt"))?;
+        write_examples(&self.conn, &mut self.packaging_cache,  include_str!("top/top_packaging.txt"))?;
+        write_examples(&self.conn, &mut self.name_cache,       include_str!("top/top_name.txt"))?;
+        write_examples(&self.conn, &mut self.desc_cache,       include_str!("top/top_desc.txt"))?;
+        Ok(())
     }
 
-    pub fn commit(self) -> Result<(), Error> {
-        Ok(self.conn.commit()?)
+    pub fn done(self) -> Result<rusqlite::Transaction<'t>, Error> {
+        Ok(self.conn)
     }
 
     pub fn add(&mut self, doc: &Doc) -> Result<(), Error> {
