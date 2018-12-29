@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use cast::i64;
+use failure::ensure;
 use failure::err_msg;
 use failure::Error;
 use insideout::InsideOut;
@@ -18,6 +19,8 @@ pub struct Db<'t> {
     artifact_cache: Cache,
     name_cache: Cache,
     desc_cache: Cache,
+    package_cache: Cache,
+    classifier_cache: Cache,
 }
 
 impl<'t> Db<'t> {
@@ -28,6 +31,8 @@ impl<'t> Db<'t> {
             artifact_cache: ("artifact", HashMap::with_capacity(200 * 1_024)),
             name_cache: ("name", HashMap::with_capacity(40 * 1_024)),
             desc_cache: ("desc", HashMap::with_capacity(40 * 1_024)),
+            package_cache: ("package", HashMap::with_capacity(1_024)),
+            classifier_cache: ("classifier", HashMap::with_capacity(1_024)),
         };
 
         for (name, _cache) in &[
@@ -35,6 +40,8 @@ impl<'t> Db<'t> {
             &us.artifact_cache,
             &us.name_cache,
             &us.desc_cache,
+            &us.package_cache,
+            &us.classifier_cache,
         ] {
             us.conn.execute(
                 &format!(
@@ -134,6 +141,16 @@ create table if not exists {}_names (
         let name_name = option_write(&self.conn, &mut self.name_cache, doc.name.as_ref())?;
         let desc_name = option_write(&self.conn, &mut self.desc_cache, doc.description.as_ref())?;
 
+        let shared_cache = &mut self.package_cache;
+        let pkg_name = option_write(&self.conn, shared_cache, Some(&doc.object_info.packaging))?;
+        let ext_name = string_write(&self.conn, shared_cache, &doc.object_info.extension)?;
+
+        let classifier_name = option_write(
+            &self.conn,
+            &mut self.classifier_cache,
+            doc.id.classifier.as_ref(),
+        )?;
+
         self.conn
             .prepare_cached(
                 r"
@@ -141,36 +158,40 @@ insert into versions
   (
    group_id,
    artifact_id,
+   version,
+   classifier_id,
+   extension_id,
+
+   packaging_id,
+
    last_modified,
    size,
+   checksum,
+
    source_attached,
    javadoc_attached,
    signature_attached,
+
    name_id,
-   desc_id,
-   version,
-   classifier,
-   packaging,
-   extension,
-   checksum
+   desc_id
   ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ",
             )?
             .insert(&[
                 &group_name as &ToSql,
                 &artifact_name,
+                &doc.id.version,
+                &classifier_name,
+                &ext_name,
+                &pkg_name,
                 &i64(doc.object_info.last_modified / 1000)?,
                 &doc.object_info.size.map(|s| i64(s)).inside_out()?,
+                &doc.checksum.map(|arr| hex::encode(arr)),
                 &attached_bool(doc.object_info.source_attached),
                 &attached_bool(doc.object_info.javadoc_attached),
                 &attached_bool(doc.object_info.signature_attached),
                 &name_name,
                 &desc_name,
-                &doc.id.version,
-                &null_empty(doc.id.classifier.as_ref()),
-                &null_empty(Some(&doc.object_info.packaging)),
-                &null_empty(Some(&doc.object_info.extension)),
-                &doc.checksum.map(|arr| hex::encode(arr)),
             ])?;
 
         Ok(())
@@ -199,6 +220,8 @@ fn string_write(
         return Ok(*id);
     }
 
+    ensure!(empty_filter(val.trim()), "illegal string: {}: {:?}", table, val);
+
     let new_id = match conn
         .prepare_cached(&format!("insert into {}_names (name) values (?)", table))?
         .insert(&[val])
@@ -226,11 +249,6 @@ fn attached_bool(status: AttachmentStatus) -> Option<bool> {
         AttachmentStatus::Present => Some(true),
         AttachmentStatus::Unavailable => None,
     }
-}
-
-#[inline]
-fn null_empty(s: Option<&String>) -> Option<&str> {
-    s.map(|s| s.trim()).filter(|s| empty_filter(s))
 }
 
 fn empty_filter(s: &str) -> bool {
