@@ -27,14 +27,6 @@ impl<'t> Db<'t> {
             name_desc_cache: HashMap::with_capacity(100 * 1_024),
         };
 
-        // ensure the blank name/desc gets id=0; small in the db
-        name_desc_write(
-            &mut us.conn,
-            &mut us.name_desc_cache,
-            &Some(String::new()),
-            &Some(String::new()),
-        )?;
-
         for artifact in &[
             "core",
             "parent",
@@ -90,6 +82,26 @@ impl<'t> Db<'t> {
                 &mut us.group_cache,
                 &group.to_string(),
             )?;
+        }
+
+        for (name, desc) in &[
+            ("", ""),
+            ("${project.groupId}:${project.artifactId}", ""),
+            ("${project.artifactId}", ""),
+            ("core", "core"),
+            ("Grails", "Grails Web Application Framework"),
+            ("Groovy", "Groovy: A powerful, dynamic language for the JVM"),
+            ("Apache ServiceMix :: Bundles :: ${pkgArtifactId}", "This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file."),
+            ("Restcomm :: Diameter Resources :: ${pom.artifactId}", ""),
+            ("Apache ServiceMix :: Bundles :: ${pkgArtifactId}", ""),
+        ] {
+            name_desc_write(
+                &mut us.conn,
+                &mut us.name_desc_cache,
+                &Some(name.to_string()),
+                &Some(desc.to_string()),
+            )?;
+
         }
 
         Ok(us)
