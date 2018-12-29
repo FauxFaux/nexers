@@ -2,8 +2,10 @@ use failure::Error;
 use rusqlite::Transaction;
 
 mod builder;
+mod ingest;
 
 pub use self::builder::DbBuilder;
+pub use self::ingest::ingest;
 
 pub fn find_versions(
     conn: &Transaction,
