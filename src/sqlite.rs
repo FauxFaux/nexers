@@ -86,18 +86,16 @@ impl<'t> Db<'t> {
             )?;
         }
 
-        for (name, desc) in &[
-            ("${project.groupId}:${project.artifactId}", ""),
-            ("${project.artifactId}", ""),
-            ("core", "core"),
-            ("Grails", "Grails Web Application Framework"),
-            ("Groovy", "Groovy: A powerful, dynamic language for the JVM"),
-            (
-                "Apache ServiceMix :: Bundles :: ${pkgArtifactId}",
-                "This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file.",
-            ),
-            ("Restcomm :: Diameter Resources :: ${pom.artifactId}", ""),
-            ("Apache ServiceMix :: Bundles :: ${pkgArtifactId}", ""),
+        for name in &[
+            "${project.groupId}:${project.artifactId}",
+            "${project.artifactId}",
+            "${project.groupId}.${project.artifactId}",
+            "core",
+            "Grails",
+            "Groovy",
+            "Apache ServiceMix :: Bundles :: ${pkgArtifactId}",
+            "Restcomm :: Diameter Resources",
+            "Restcomm :: Resources :: ${pom.artifactId}",
         ] {
             string_write(
                 &mut us.conn,
@@ -105,7 +103,16 @@ impl<'t> Db<'t> {
                 &mut us.name_cache,
                 &name.to_string(),
             )?;
+        }
 
+        for desc in &[
+            "${project.name}",
+            "Grails Web Application Framework",
+            "Groovy: A powerful, dynamic language for the JVM",
+            "core",
+            "This is the core module of the project.",
+            "This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file.",
+        ] {
             string_write(
                 &mut us.conn,
                 "desc_names",
@@ -138,7 +145,7 @@ impl<'t> Db<'t> {
         let name_name = doc
             .name
             .as_ref()
-            .filter(|name| !name.trim().is_empty())
+            .filter(|name| !name.trim().is_empty() && "null" != name.as_str())
             .map(|name| -> Result<i64, Error> {
                 string_write(&self.conn, "name_names", &mut self.name_cache, name)
             })
@@ -147,7 +154,7 @@ impl<'t> Db<'t> {
         let desc_name = doc
             .description
             .as_ref()
-            .filter(|name| !name.trim().is_empty())
+            .filter(|name| !name.trim().is_empty() && "null" != name.as_str())
             .map(|desc| -> Result<i64, Error> {
                 string_write(&self.conn, "desc_names", &mut self.desc_cache, desc)
             })
