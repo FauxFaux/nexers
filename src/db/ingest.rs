@@ -55,13 +55,16 @@ pub fn ingest<R: io::BufRead>(from: R, tran: rusqlite::Connection) -> Result<Vec
 }
 
 fn write(mut tran: rusqlite::Connection, recv: channel::Receiver) -> Result<(), Error> {
-    let mut db = db::DbBuilder::new(tran.transaction()?)?;
+    let tran = tran.transaction()?;
 
-    while let Some(doc) = recv.recv().ok() {
-        db.add(&doc)?;
+    {
+        let mut db = db::DbBuilder::new(&tran)?;
+        while let Some(doc) = recv.recv().ok() {
+            db.add(&doc)?;
+        }
     }
 
-    db.done()?.commit()?;
+    tran.commit()?;
 
     Ok(())
 }

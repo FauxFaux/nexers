@@ -14,7 +14,7 @@ use crate::nexus::Doc;
 type Cache = (&'static str, HashMap<String, i64>);
 
 pub struct DbBuilder<'t> {
-    conn: rusqlite::Transaction<'t>,
+    conn: &'t rusqlite::Connection,
     group_cache: Cache,
     artifact_cache: Cache,
     name_cache: Cache,
@@ -24,7 +24,7 @@ pub struct DbBuilder<'t> {
 }
 
 impl<'t> DbBuilder<'t> {
-    pub fn new(conn: rusqlite::Transaction) -> Result<DbBuilder, Error> {
+    pub fn new(conn: &rusqlite::Connection) -> Result<DbBuilder, Error> {
         let mut us = DbBuilder {
             conn,
             group_cache: ("group", HashMap::with_capacity(40 * 1_024)),
@@ -75,10 +75,6 @@ create table if not exists {}_names (
         write_examples(&self.conn, &mut self.name_cache,       include_str!("top/top_name.txt"))?;
         write_examples(&self.conn, &mut self.desc_cache,       include_str!("top/top_desc.txt"))?;
         Ok(())
-    }
-
-    pub fn done(self) -> Result<rusqlite::Transaction<'t>, Error> {
-        Ok(self.conn)
     }
 
     pub fn add(&mut self, doc: &Doc) -> Result<(), Error> {
@@ -146,7 +142,7 @@ insert into versions
 
 #[inline]
 fn option_write(
-    conn: &rusqlite::Transaction,
+    conn: &rusqlite::Connection,
     cache: &mut Cache,
     val: Option<&String>,
 ) -> Result<Option<i64>, Error> {
@@ -157,7 +153,7 @@ fn option_write(
 
 #[inline]
 fn string_write(
-    conn: &rusqlite::Transaction,
+    conn: &rusqlite::Connection,
     cache: &mut Cache,
     val: &String,
 ) -> Result<i64, Error> {
@@ -196,7 +192,7 @@ fn string_write(
 
 #[inline]
 fn write_examples(
-    conn: &rusqlite::Transaction,
+    conn: &rusqlite::Connection,
     cache: &mut Cache,
     contents: &'static str,
 ) -> Result<(), Error> {
