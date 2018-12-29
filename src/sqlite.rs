@@ -69,6 +69,22 @@ create table if not exists {}_names (
         Ok(us)
     }
 
+    pub fn find_versions(&self, group: &str, artifact: &str) -> Result<Vec<String>, Error> {
+        let group_name: i64 = self
+            .conn
+            .prepare_cached("select id from group_names where name=?")?
+            .query_row(&[group], |r| r.get(0))?;
+        let artifact_name: i64 = self
+            .conn
+            .prepare_cached("select id from artifact_names where name=?")?
+            .query_row(&[artifact], |r| r.get(0))?;
+        Ok(self
+            .conn
+            .prepare_cached("select version from versions where group_id=? and artifact_id=?")?
+            .query_map(&[group_name, artifact_name], |row| row.get(0))?
+            .collect::<Result<Vec<String>, _>>()?)
+    }
+
     pub fn commit(self) -> Result<(), Error> {
         Ok(self.conn.commit()?)
     }
