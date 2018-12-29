@@ -2,13 +2,13 @@ use std::io;
 
 use failure::Error;
 
-use nexers::Event;
+use nexers::nexus::Event;
 
 #[test]
 fn load() -> Result<(), Error> {
     let mut events = Vec::with_capacity(2);
 
-    nexers::read(
+    nexers::nexus::read(
         io::BufReader::new(io::Cursor::new(&include_bytes!("tiny-file")[..])),
         |ev| {
             events.push(ev);

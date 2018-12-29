@@ -2,13 +2,13 @@ use std::io;
 
 use failure::Error;
 
-use nexers::Event;
+use nexers::nexus::Event;
 
 fn main() -> Result<(), Error> {
     use std::fs;
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let mut errors = 0;
-    nexers::read(from, |event| {
+    nexers::nexus::read(from, |event| {
         match event {
             Event::Doc(d) => {
                 if d.id.group == "com.google.guava" && d.id.artifact == "guava" {

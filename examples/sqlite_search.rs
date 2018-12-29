@@ -6,9 +6,9 @@ use std::thread;
 use failure::format_err;
 use failure::Error;
 
-use nexers::sqlite;
-use nexers::Doc;
-use nexers::Event;
+use nexers::db;
+use nexers::nexus::Doc;
+use nexers::nexus::Event;
 
 #[cfg(feature = "jemallocator")]
 #[global_allocator]
@@ -41,7 +41,7 @@ fn main() -> Result<(), Error> {
 
     let writer = thread::spawn(|| write(recv));
 
-    let local_error = nexers::read(from, |event| {
+    let local_error = nexers::nexus::read(from, |event| {
         match event {
             Event::Doc(d) => send.send(d)?,
 
@@ -66,7 +66,7 @@ fn write(recv: channel::Receiver) -> Result<(), Error> {
     let mut sql = rusqlite::Connection::open("search.db")?;
     sql.execute_batch(include_str!("../schema.sql"))?;
     let tran = sql.transaction()?;
-    let mut db = sqlite::DbBuilder::new(tran)?;
+    let mut db = db::DbBuilder::new(tran)?;
 
     let mut pos = 0usize;
 
@@ -82,7 +82,7 @@ fn write(recv: channel::Receiver) -> Result<(), Error> {
 
     println!(
         "{:?}",
-        sqlite::find_versions(&tran, "com.google.guava", "guava")?
+        db::find_versions(&tran, "com.google.guava", "guava")?
     );
 
     tran.commit()?;

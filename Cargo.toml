@@ -5,13 +5,13 @@ authors = ["Chris West (Faux) <git@goeswhere.com>"]
 edition = "2018"
 
 [features]
-default = ["sqlite"]
+default = ["db"]
 
 # jemallocator: use the allocator (e.g. in examples), 30% speedup
 # crossbeam-channel: use instead of mpsc's sync channel, ~5% speedup
 
 # enable the database writing code
-sqlite = ["rusqlite"]
+db = ["rusqlite"]
 
 [dependencies]
 bitflags = "1"
@@ -36,9 +36,13 @@ version = "0.3"
 optional = true
 version = "0.1"
 
+[dependencies.reqwest]
+optional = true
+version = "0.9"
+
 [[example]]
 name = "sqlite_search"
-required-features = ["sqlite"]
+required-features = ["db"]
 
 [profile.release]
 lto = true

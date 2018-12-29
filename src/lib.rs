@@ -1,9 +1,6 @@
 mod java;
-mod nexus;
 
-#[cfg(feature = "sqlite")]
-pub mod sqlite;
+pub mod nexus;
 
-pub use self::nexus::read;
-pub use self::nexus::Doc;
-pub use self::nexus::Event;
+#[cfg(feature = "db")]
+pub mod db;
