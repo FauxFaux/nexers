@@ -35,6 +35,63 @@ impl<'t> Db<'t> {
             &Some(String::new()),
         )?;
 
+        for artifact in &[
+            "core",
+            "parent",
+            "common",
+            "library",
+            "metrics",
+            "logging",
+            "utils",
+            "bootstrap",
+            "management",
+            "jenkins",
+            "client",
+            "prometheus",
+            "commons",
+            "api",
+            "social",
+            "scala-library",
+            "config",
+            "testing",
+            "sdk",
+            "project",
+            "jmx",
+            "json",
+            "server",
+            "model",
+            "examples",
+        ] {
+            string_write(
+                &mut us.conn,
+                "artifact_names",
+                &mut us.artifact_cache,
+                &artifact.to_string(),
+            )?;
+        }
+
+        // select (select name from group_names where id=group_id) name,cnt from
+        // (select group_id,count(*) cnt from versions group by group_id)
+        // order by cast(cnt/10000 as int) desc,name limit 256;
+        for group in &[
+            "com.google.apis",
+            "com.amazonaws",
+            "org.wso2.carbon.identity.framework",
+            "com.lihaoyi",
+            "org.apache.camel",
+            "org.wso2.carbon.apimgt",
+            "com.liferay",
+            "org.apereo.cas",
+            "org.webjars.npm",
+        ] {
+            string_write(
+                &mut us.conn,
+                "group_names",
+                &mut us.group_cache,
+                &group.to_string(),
+            )?;
+        }
+
         Ok(us)
     }
 
