@@ -6,7 +6,7 @@ use std::thread;
 use failure::format_err;
 use failure::Error;
 
-use nexers::sqlite::Db;
+use nexers::sqlite::DbBuilder;
 use nexers::Doc;
 use nexers::Event;
 
@@ -46,7 +46,7 @@ fn write(recv: crossbeam_channel::Receiver<Doc>) -> Result<(), Error> {
     let mut sql = rusqlite::Connection::open("search.db")?;
     sql.execute_batch(include_str!("../schema.sql"))?;
     let tran = sql.transaction()?;
-    let mut db = Db::new(tran)?;
+    let mut db = DbBuilder::new(tran)?;
 
     let mut pos = 0usize;
 
@@ -63,7 +63,7 @@ fn write(recv: crossbeam_channel::Receiver<Doc>) -> Result<(), Error> {
 
     println!(
         "{:?}",
-        Db::new(sql.transaction()?)?.find_versions("com.google.guava", "guava")?
+        DbBuilder::new(sql.transaction()?)?.find_versions("com.google.guava", "guava")?
     );
 
     Ok(())
