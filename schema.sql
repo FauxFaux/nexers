@@ -8,11 +8,14 @@ create table artifact_names (
   name varchar not null unique
 );
 
-create table full_descriptions (
+create table name_names (
   id integer primary key,
-  name varchar not null,
-  description varchar not null,
-  unique (name, description)
+  name varchar not null unique
+);
+
+create table desc_names (
+  id integer primary key,
+  name varchar not null unique
 );
 
 create table versions (
@@ -24,7 +27,8 @@ create table versions (
   source_attached boolean,
   javadoc_attached boolean,
   signature_attached boolean,
-  name_desc_id integer not null,
+  name_id integer,
+  desc_id integer,
   version varchar not null,
   classifier varchar,
   packaging varchar,

@@ -15,7 +15,8 @@ pub struct Db<'t> {
     conn: rusqlite::Transaction<'t>,
     group_cache: Cache,
     artifact_cache: Cache,
-    name_desc_cache: HashMap<(String, String), i64>,
+    name_cache: Cache,
+    desc_cache: Cache,
 }
 
 impl<'t> Db<'t> {
@@ -24,7 +25,8 @@ impl<'t> Db<'t> {
             conn,
             group_cache: Cache::with_capacity(40 * 1_024),
             artifact_cache: Cache::with_capacity(200 * 1_024),
-            name_desc_cache: HashMap::with_capacity(100 * 1_024),
+            name_cache: Cache::with_capacity(40 * 1_024),
+            desc_cache: Cache::with_capacity(40 * 1_024),
         };
 
         for artifact in &[
@@ -85,23 +87,31 @@ impl<'t> Db<'t> {
         }
 
         for (name, desc) in &[
-            ("", ""),
             ("${project.groupId}:${project.artifactId}", ""),
             ("${project.artifactId}", ""),
             ("core", "core"),
             ("Grails", "Grails Web Application Framework"),
             ("Groovy", "Groovy: A powerful, dynamic language for the JVM"),
-            ("Apache ServiceMix :: Bundles :: ${pkgArtifactId}", "This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file."),
+            (
+                "Apache ServiceMix :: Bundles :: ${pkgArtifactId}",
+                "This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file.",
+            ),
             ("Restcomm :: Diameter Resources :: ${pom.artifactId}", ""),
             ("Apache ServiceMix :: Bundles :: ${pkgArtifactId}", ""),
         ] {
-            name_desc_write(
+            string_write(
                 &mut us.conn,
-                &mut us.name_desc_cache,
-                &Some(name.to_string()),
-                &Some(desc.to_string()),
+                "name_names",
+                &mut us.name_cache,
+                &name.to_string(),
             )?;
 
+            string_write(
+                &mut us.conn,
+                "desc_names",
+                &mut us.desc_cache,
+                &desc.to_string(),
+            )?;
         }
 
         Ok(us)
@@ -125,12 +135,23 @@ impl<'t> Db<'t> {
             &doc.id.artifact,
         )?;
 
-        let desc_name = name_desc_write(
-            &self.conn,
-            &mut self.name_desc_cache,
-            &doc.name,
-            &doc.description,
-        )?;
+        let name_name = doc
+            .name
+            .as_ref()
+            .filter(|name| !name.trim().is_empty())
+            .map(|name| -> Result<i64, Error> {
+                string_write(&self.conn, "name_names", &mut self.name_cache, name)
+            })
+            .inside_out()?;
+
+        let desc_name = doc
+            .description
+            .as_ref()
+            .filter(|name| !name.trim().is_empty())
+            .map(|desc| -> Result<i64, Error> {
+                string_write(&self.conn, "desc_names", &mut self.desc_cache, desc)
+            })
+            .inside_out()?;
 
         self.conn
             .prepare_cached(
@@ -144,13 +165,14 @@ insert into versions
    source_attached,
    javadoc_attached,
    signature_attached,
-   name_desc_id,
+   name_id,
+   desc_id,
    version,
    classifier,
    packaging,
    extension,
    checksum
-  ) values (?,?,?,?,?,?,?,?,?,?,?,?,?)
+  ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ",
             )?
             .insert(&[
@@ -161,6 +183,7 @@ insert into versions
                 &attached_bool(doc.object_info.source_attached),
                 &attached_bool(doc.object_info.javadoc_attached),
                 &attached_bool(doc.object_info.signature_attached),
+                &name_name,
                 &desc_name,
                 &doc.id.version,
                 &doc.id.classifier,
@@ -197,36 +220,6 @@ fn string_write(
         .insert(&[val])?;
 
     cache.insert(val.to_string(), new_id);
-
-    Ok(new_id)
-}
-
-fn name_desc_write(
-    conn: &rusqlite::Transaction,
-    cache: &mut HashMap<(String, String), i64>,
-    name: &Option<String>,
-    desc: &Option<String>,
-) -> Result<i64, Error> {
-    let name = name.clone().unwrap_or_default();
-    let desc = desc.clone().unwrap_or_default();
-
-    if let Some(id) = cache.get(&(name.to_string(), desc.to_string())) {
-        return Ok(*id);
-    }
-
-    if let Some(id) = conn
-        .prepare_cached("select id from full_descriptions where name=? and description=?")?
-        .query_row(&[&name, &desc], |row| row.get(0))
-        .optional()?
-    {
-        return Ok(id);
-    }
-
-    let new_id = conn
-        .prepare_cached("insert into full_descriptions (name, description) values (?,?)")?
-        .insert(&[&name, &desc])?;
-
-    cache.insert((name, desc), new_id);
 
     Ok(new_id)
 }
