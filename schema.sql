@@ -8,16 +8,6 @@ create table artifact_names (
   name varchar not null unique
 );
 
-create table group_artifact (
-  group_name integer not null, --> group_names(id)
-  artifact_name integer not null --> artifact_names(id)
-);
-
-create table artifact_version (
-  artifact_name integer not null, --> artifact_names(id)
-  version_id integer not null --> versions(id)
-);
-
 create table full_descriptions (
   id integer primary key,
   name varchar not null,
@@ -27,6 +17,8 @@ create table full_descriptions (
 
 create table versions (
   id integer primary key,
+  group_id integer not null,
+  artifact_id integer not null,
   last_modified timestamp not null,
   size integer,
   source_attached boolean,

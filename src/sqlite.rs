@@ -63,12 +63,13 @@ impl<'t> Db<'t> {
             &doc.description,
         )?;
 
-        let version_id = self
-            .conn
+        self.conn
             .prepare_cached(
                 r"
 insert into versions
   (
+   group_id,
+   artifact_id,
    last_modified,
    size,
    source_attached,
@@ -80,11 +81,13 @@ insert into versions
    packaging,
    extension,
    checksum
-  ) values (?,?,?,?,?,?,?,?,?,?,?)
+  ) values (?,?,?,?,?,?,?,?,?,?,?,?,?)
 ",
             )?
             .insert(&[
-                &i64(doc.object_info.last_modified)? as &ToSql,
+                &group_name as &ToSql,
+                &artifact_name,
+                &i64(doc.object_info.last_modified)?,
                 &doc.object_info.size.map(|s| i64(s)).inside_out()?,
                 &attached_bool(doc.object_info.source_attached),
                 &attached_bool(doc.object_info.javadoc_attached),
@@ -96,16 +99,6 @@ insert into versions
                 &doc.object_info.extension,
                 &doc.checksum.map(|arr| hex::encode(arr)),
             ])?;
-
-        self.conn
-            .prepare_cached("insert into group_artifact (group_name, artifact_name) values (?,?)")?
-            .insert(&[group_name, artifact_name])?;
-
-        self.conn
-            .prepare_cached(
-                "insert into artifact_version (artifact_name, version_id) values (?,?)",
-            )?
-            .insert(&[artifact_name, version_id])?;
 
         Ok(())
     }

@@ -22,9 +22,7 @@ fn main() -> Result<(), Error> {
 
     let local_error = nexers::read(from, |event| {
         match event {
-            Event::Doc(d) => {
-                send.send(d)?
-            },
+            Event::Doc(d) => send.send(d)?,
 
             Event::Error { .. } => errors += 1,
             Event::Delete(_) => (),
