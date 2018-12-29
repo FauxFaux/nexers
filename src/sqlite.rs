@@ -24,11 +24,30 @@ impl<'t> Db<'t> {
     pub fn new(conn: rusqlite::Transaction) -> Result<Db, Error> {
         let mut us = Db {
             conn,
-            group_cache: ("group_names", HashMap::with_capacity(40 * 1_024)),
-            artifact_cache: ("artifact_names", HashMap::with_capacity(200 * 1_024)),
-            name_cache: ("name_names", HashMap::with_capacity(40 * 1_024)),
-            desc_cache: ("desc_names", HashMap::with_capacity(40 * 1_024)),
+            group_cache: ("group", HashMap::with_capacity(40 * 1_024)),
+            artifact_cache: ("artifact", HashMap::with_capacity(200 * 1_024)),
+            name_cache: ("name", HashMap::with_capacity(40 * 1_024)),
+            desc_cache: ("desc", HashMap::with_capacity(40 * 1_024)),
         };
+
+        for (name, _cache) in &[
+            &us.group_cache,
+            &us.artifact_cache,
+            &us.name_cache,
+            &us.desc_cache,
+        ] {
+            us.conn.execute(
+                &format!(
+                    r"
+create table if not exists {}_names (
+  id integer primary key,
+  name varchar not null unique
+)",
+                    name
+                ),
+                rusqlite::NO_PARAMS,
+            )?;
+        }
 
         for artifact in &[
             "core",
@@ -181,14 +200,14 @@ fn string_write(
     }
 
     let new_id = match conn
-        .prepare_cached(&format!("insert into {} (name) values (?)", table))?
+        .prepare_cached(&format!("insert into {}_names (name) values (?)", table))?
         .insert(&[val])
     {
         Ok(id) => id,
         Err(rusqlite::Error::SqliteFailure(e, ref _msg))
             if rusqlite::ErrorCode::ConstraintViolation == e.code =>
         {
-            conn.prepare_cached(&format!("select id from {} where name=?", table))?
+            conn.prepare_cached(&format!("select id from {}_names where name=?", table))?
                 .query_row(&[val], |row| row.get(0))
                 .optional()?
                 .ok_or_else(|| err_msg("constraint violation, but row didn't exist"))?
