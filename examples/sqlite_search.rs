@@ -11,10 +11,14 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn main() -> Result<(), Error> {
     let from = io::BufReader::new(fs::File::open("sample-index")?);
-    let sql = rusqlite::Connection::open("search.db")?;
-    sql.execute_batch(include_str!("../schema.sql"))?;
-    let errors = db::ingest(from, sql)?;
-    println!("..and {} errors", errors.len());
+    let conn = rusqlite::Connection::open("search.db")?;
+    conn.execute_batch(include_str!("../schema.sql"))?;
+    let conn = db::ingest(from, conn)?;
+
+    println!(
+        "{:?}",
+        db::find_versions(&conn, "com.google.guava", "guava")?
+    );
 
     Ok(())
 }

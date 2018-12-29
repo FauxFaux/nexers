@@ -1,5 +1,5 @@
 use failure::Error;
-use rusqlite::Transaction;
+use rusqlite::Connection;
 
 mod builder;
 mod ingest;
@@ -7,11 +7,7 @@ mod ingest;
 pub use self::builder::DbBuilder;
 pub use self::ingest::ingest;
 
-pub fn find_versions(
-    conn: &Transaction,
-    group: &str,
-    artifact: &str,
-) -> Result<Vec<String>, Error> {
+pub fn find_versions(conn: &Connection, group: &str, artifact: &str) -> Result<Vec<String>, Error> {
     Ok(conn
         .prepare_cached(
             r"
