@@ -186,7 +186,7 @@ insert into versions
             .insert(&[
                 &group_name as &ToSql,
                 &artifact_name,
-                &i64(doc.object_info.last_modified)?,
+                &i64(doc.object_info.last_modified / 1000)?,
                 &doc.object_info.size.map(|s| i64(s)).inside_out()?,
                 &attached_bool(doc.object_info.source_attached),
                 &attached_bool(doc.object_info.javadoc_attached),
@@ -194,9 +194,9 @@ insert into versions
                 &name_name,
                 &desc_name,
                 &doc.id.version,
-                &doc.id.classifier,
-                &doc.object_info.packaging,
-                &doc.object_info.extension,
+                &null_empty(doc.id.classifier.as_ref()),
+                &null_empty(Some(&doc.object_info.packaging)),
+                &null_empty(Some(&doc.object_info.extension)),
                 &doc.checksum.map(|arr| hex::encode(arr)),
             ])?;
 
@@ -242,4 +242,9 @@ fn attached_bool(status: AttachmentStatus) -> Option<bool> {
         AttachmentStatus::Present => Some(true),
         AttachmentStatus::Unavailable => None,
     }
+}
+
+#[inline]
+fn null_empty(s: Option<&String>) -> Option<&str> {
+    s.map(|s| s.trim()).filter(|s| !s.is_empty() && "null" != *s)
 }
