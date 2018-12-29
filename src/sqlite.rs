@@ -10,7 +10,7 @@ use rusqlite::OptionalExtension;
 use crate::nexus::AttachmentStatus;
 use crate::nexus::Doc;
 
-type Cache = HashMap<String, i64>;
+type Cache = (&'static str, HashMap<String, i64>);
 
 pub struct Db<'t> {
     conn: rusqlite::Transaction<'t>,
@@ -24,10 +24,10 @@ impl<'t> Db<'t> {
     pub fn new(conn: rusqlite::Transaction) -> Result<Db, Error> {
         let mut us = Db {
             conn,
-            group_cache: Cache::with_capacity(40 * 1_024),
-            artifact_cache: Cache::with_capacity(200 * 1_024),
-            name_cache: Cache::with_capacity(40 * 1_024),
-            desc_cache: Cache::with_capacity(40 * 1_024),
+            group_cache: ("group_names", HashMap::with_capacity(40 * 1_024)),
+            artifact_cache: ("artifact_names", HashMap::with_capacity(200 * 1_024)),
+            name_cache: ("name_names", HashMap::with_capacity(40 * 1_024)),
+            desc_cache: ("desc_names", HashMap::with_capacity(40 * 1_024)),
         };
 
         for artifact in &[
@@ -57,12 +57,7 @@ impl<'t> Db<'t> {
             "model",
             "examples",
         ] {
-            string_write(
-                &mut us.conn,
-                "artifact_names",
-                &mut us.artifact_cache,
-                &artifact.to_string(),
-            )?;
+            string_write(&mut us.conn, &mut us.artifact_cache, &artifact.to_string())?;
         }
 
         // select (select name from group_names where id=group_id) name,cnt from
@@ -79,12 +74,7 @@ impl<'t> Db<'t> {
             "org.apereo.cas",
             "org.webjars.npm",
         ] {
-            string_write(
-                &mut us.conn,
-                "group_names",
-                &mut us.group_cache,
-                &group.to_string(),
-            )?;
+            string_write(&mut us.conn, &mut us.group_cache, &group.to_string())?;
         }
 
         for name in &[
@@ -98,12 +88,7 @@ impl<'t> Db<'t> {
             "Restcomm :: Diameter Resources",
             "Restcomm :: Resources :: ${pom.artifactId}",
         ] {
-            string_write(
-                &mut us.conn,
-                "name_names",
-                &mut us.name_cache,
-                &name.to_string(),
-            )?;
+            string_write(&mut us.conn, &mut us.name_cache, &name.to_string())?;
         }
 
         for desc in &[
@@ -114,12 +99,7 @@ impl<'t> Db<'t> {
             "This is the core module of the project.",
             "This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file.",
         ] {
-            string_write(
-                &mut us.conn,
-                "desc_names",
-                &mut us.desc_cache,
-                &desc.to_string(),
-            )?;
+            string_write(&mut us.conn, &mut us.desc_cache, &desc.to_string())?;
         }
 
         Ok(us)
@@ -130,36 +110,10 @@ impl<'t> Db<'t> {
     }
 
     pub fn add(&mut self, doc: &Doc) -> Result<(), Error> {
-        let group_name = string_write(
-            &self.conn,
-            "group_names",
-            &mut self.group_cache,
-            &doc.id.group,
-        )?;
-        let artifact_name = string_write(
-            &self.conn,
-            "artifact_names",
-            &mut self.artifact_cache,
-            &doc.id.artifact,
-        )?;
-
-        let name_name = doc
-            .name
-            .as_ref()
-            .filter(|name| !name.trim().is_empty() && "null" != name.as_str())
-            .map(|name| -> Result<i64, Error> {
-                string_write(&self.conn, "name_names", &mut self.name_cache, name)
-            })
-            .inside_out()?;
-
-        let desc_name = doc
-            .description
-            .as_ref()
-            .filter(|name| !name.trim().is_empty() && "null" != name.as_str())
-            .map(|desc| -> Result<i64, Error> {
-                string_write(&self.conn, "desc_names", &mut self.desc_cache, desc)
-            })
-            .inside_out()?;
+        let group_name = string_write(&self.conn, &mut self.group_cache, &doc.id.group)?;
+        let artifact_name = string_write(&self.conn, &mut self.artifact_cache, &doc.id.artifact)?;
+        let name_name = option_write(&self.conn, &mut self.name_cache, doc.name.as_ref())?;
+        let desc_name = option_write(&self.conn, &mut self.desc_cache, doc.description.as_ref())?;
 
         self.conn
             .prepare_cached(
@@ -205,12 +159,23 @@ insert into versions
 }
 
 #[inline]
+fn option_write(
+    conn: &rusqlite::Transaction,
+    cache: &mut Cache,
+    val: Option<&String>,
+) -> Result<Option<i64>, Error> {
+    val.filter(|name| empty_filter(name.as_str()))
+        .map(|name| -> Result<i64, Error> { string_write(conn, cache, name) })
+        .inside_out()
+}
+
+#[inline]
 fn string_write(
     conn: &rusqlite::Transaction,
-    table: &'static str,
     cache: &mut Cache,
     val: &String,
 ) -> Result<i64, Error> {
+    let (table, cache) = cache;
     if let Some(id) = cache.get(val) {
         return Ok(*id);
     }
@@ -246,5 +211,9 @@ fn attached_bool(status: AttachmentStatus) -> Option<bool> {
 
 #[inline]
 fn null_empty(s: Option<&String>) -> Option<&str> {
-    s.map(|s| s.trim()).filter(|s| !s.is_empty() && "null" != *s)
+    s.map(|s| s.trim()).filter(|s| empty_filter(s))
+}
+
+fn empty_filter(s: &str) -> bool {
+    !s.is_empty() && "null" != s
 }
