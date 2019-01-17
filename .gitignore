@@ -7,3 +7,5 @@ nexers.iml
 nexers.db
 search.db
 *-journal
+nexus-maven-repository-index.gz
+maven.db

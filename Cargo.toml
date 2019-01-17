@@ -44,5 +44,9 @@ version = "0.9"
 name = "sqlite_search"
 required-features = ["db"]
 
+[[example]]
+name = "build_db"
+required-features = ["db"]
+
 [profile.release]
 lto = true
