@@ -26,7 +26,7 @@ maplit = "1"
 [dependencies.rusqlite]
 features = ["bundled"]
 optional = true
-version = "0.16.0"
+version = "0.18.0"
 
 [dependencies.crossbeam-channel]
 optional = true
@@ -34,7 +34,7 @@ version = "0.3"
 
 [dependencies.jemallocator]
 optional = true
-version = "0.1"
+version = "0.3"
 
 [dependencies.reqwest]
 optional = true

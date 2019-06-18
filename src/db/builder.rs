@@ -120,7 +120,7 @@ insert into versions
 ",
             )?
             .insert(&[
-                &group_name as &ToSql,
+                &group_name as &dyn ToSql,
                 &artifact_name,
                 &doc.id.version,
                 &classifier_name,
