@@ -1,6 +1,6 @@
 use std::collections::HashMap;
+use std::convert::TryFrom;
 
-use cast::i64;
 use failure::ensure;
 use failure::err_msg;
 use failure::Error;
@@ -126,8 +126,11 @@ insert into versions
                 &classifier_name,
                 &ext_name,
                 &pkg_name,
-                &i64(doc.object_info.last_modified / 1000)?,
-                &doc.object_info.size.map(|s| i64(s)).inside_out()?,
+                &i64::try_from(doc.object_info.last_modified / 1000)?,
+                &doc.object_info
+                    .size
+                    .map(|s| i64::try_from(s))
+                    .inside_out()?,
                 &doc.checksum.map(|arr| hex::encode(arr)),
                 &attached_bool(doc.object_info.source_attached),
                 &attached_bool(doc.object_info.javadoc_attached),
@@ -135,7 +138,6 @@ insert into versions
                 &name_name,
                 &desc_name,
             ])?;
-
         Ok(())
     }
 }

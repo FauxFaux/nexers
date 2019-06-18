@@ -1,9 +1,8 @@
 use std::collections::HashSet;
+use std::convert::TryFrom;
 use std::io::BufRead;
 
 use bitflags::bitflags;
-use cast::u8;
-use cast::usize;
 use failure::bail;
 use failure::ensure;
 use failure::err_msg;
@@ -173,7 +172,7 @@ fn read_fields<R: BufRead>(f: &mut DataInput<R>) -> Result<Option<Vec<(String, S
         .read_int()
         .with_context(|_| err_msg("reading field count (first field)"))?;
 
-    let field_count = usize(field_count)?;
+    let field_count = usize::try_from(field_count)?;
     let mut ret = Vec::with_capacity(field_count);
 
     for field in 0..field_count {
@@ -184,14 +183,14 @@ fn read_fields<R: BufRead>(f: &mut DataInput<R>) -> Result<Option<Vec<(String, S
 }
 
 fn read_field<R: BufRead>(f: &mut DataInput<R>) -> Result<(String, String), Error> {
-    let flags = u8(f.read_byte()?)?;
+    let flags = u8::try_from(f.read_byte()?)?;
     let _flags = FieldFlag::from_bits(flags).ok_or_else(|| err_msg("decoding field flags"))?;
 
     let name_len = f.read_unsigned_short()?;
-    let name = f.read_utf8(usize(name_len))?;
+    let name = f.read_utf8(usize::try_from(name_len).unwrap())?;
 
     // yup, they went out of their way to use signed data here
-    let value_len = usize(f.read_int()?)?;
+    let value_len = usize::try_from(f.read_int()?)?;
     let value = f.read_utf8(value_len)?;
 
     Ok((name, value))

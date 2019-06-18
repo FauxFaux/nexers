@@ -16,7 +16,6 @@ db = ["rusqlite"]
 [dependencies]
 bitflags = "1"
 byteorder = "1"
-cast = "0.2"
 cesu8 = "1"
 failure = "0.1"
 hex = "0.3"
