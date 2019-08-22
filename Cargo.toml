@@ -17,15 +17,19 @@ db = ["rusqlite"]
 bitflags = "1"
 byteorder = "1"
 cesu8 = "1"
-failure = "0.1"
 hex = "0.3"
 insideout = "0.2"
 maplit = "1"
 
+[dependencies.failure]
+default-features = false
+features = ["backtrace"]
+version = "0.1"
+
 [dependencies.rusqlite]
 features = ["bundled"]
 optional = true
-version = "0.18.0"
+version = "0.20"
 
 [dependencies.crossbeam-channel]
 optional = true
