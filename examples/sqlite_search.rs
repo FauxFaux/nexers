@@ -12,7 +12,7 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 fn main() -> Result<(), Error> {
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let conn = rusqlite::Connection::open("search.db")?;
-    conn.execute_batch(include_str!("../schema.sql"))?;
+    conn.execute_batch(db::SCHEMA)?;
     let conn = db::ingest(from, conn)?;
 
     println!(

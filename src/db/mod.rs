@@ -7,6 +7,8 @@ mod ingest;
 pub use self::builder::DbBuilder;
 pub use self::ingest::ingest;
 
+pub const SCHEMA: &'static str = include_str!("../../schema.sql");
+
 pub fn find_versions(conn: &Connection, group: &str, artifact: &str) -> Result<Vec<String>, Error> {
     Ok(conn
         .prepare_cached(
