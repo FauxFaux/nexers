@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Chris West (Faux) <git@goeswhere.com>"]
 edition = "2018"
 
+description = "Parses Maven/Nexus repository index files"
+license = "MIT OR Apache-2.0"
 categories = [
     "parser-implementations",
 ]
@@ -32,7 +34,7 @@ maplit = "1"
 
 [dependencies.failure]
 default-features = false
-features = ["backtrace"]
+features = ["std"]
 version = "0.1"
 
 [dependencies.rusqlite]
