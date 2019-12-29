@@ -66,7 +66,7 @@ create table if not exists {}_names (
         Ok(())
     }
 
-    #[cfg_attr(rustfmt, rustfmt::skip)]
+    #[rustfmt::skip]
     pub fn write_examples(&mut self) -> Result<(), Error> {
         write_examples(&self.conn, &mut self.group_cache,      include_str!("top/top_group.txt"))?;
         write_examples(&self.conn, &mut self.artifact_cache,   include_str!("top/top_artifact.txt"))?;
@@ -127,11 +127,8 @@ insert into versions
                 &ext_name,
                 &pkg_name,
                 &i64::try_from(doc.object_info.last_modified / 1000)?,
-                &doc.object_info
-                    .size
-                    .map(|s| i64::try_from(s))
-                    .inside_out()?,
-                &doc.checksum.map(|arr| hex::encode(arr)),
+                &doc.object_info.size.map(i64::try_from).inside_out()?,
+                &doc.checksum.map(hex::encode),
                 &attached_bool(doc.object_info.source_attached),
                 &attached_bool(doc.object_info.javadoc_attached),
                 &attached_bool(doc.object_info.signature_attached),
@@ -154,11 +151,7 @@ fn option_write(
 }
 
 #[inline]
-fn string_write(
-    conn: &rusqlite::Connection,
-    cache: &mut Cache,
-    val: &String,
-) -> Result<i64, Error> {
+fn string_write(conn: &rusqlite::Connection, cache: &mut Cache, val: &str) -> Result<i64, Error> {
     let (table, cache) = cache;
     if let Some(id) = cache.get(val) {
         return Ok(*id);
@@ -184,7 +177,7 @@ fn string_write(
                 .optional()?
                 .ok_or_else(|| err_msg("constraint violation, but row didn't exist"))?
         }
-        Err(e) => Err(e)?,
+        Err(e) => return Err(e.into()),
     };
 
     cache.insert(val.to_string(), new_id);

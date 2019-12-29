@@ -36,7 +36,7 @@ impl<R: BufRead> DataInput<R> {
         if 0 == len {
             return Ok(String::new());
         }
-        let mut buf = vec![0u8; usize::from(len)];
+        let mut buf = vec![0u8; len];
         self.inner.read_exact(&mut buf)?;
 
         match cesu8::from_java_cesu8(&buf) {
