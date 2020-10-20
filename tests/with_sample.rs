@@ -1,11 +1,11 @@
 use std::io;
 
-use failure::Error;
+use anyhow::Result;
 
 use nexers::nexus::Event;
 
 #[test]
-fn load() -> Result<(), Error> {
+fn load() -> Result<()> {
     let mut events = Vec::with_capacity(2);
 
     nexers::nexus::read(

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
-use failure::ensure;
-use failure::err_msg;
-use failure::Error;
+use anyhow::anyhow;
+use anyhow::ensure;
+use anyhow::Result;
 use insideout::InsideOut;
 use rusqlite::types::ToSql;
 use rusqlite::OptionalExtension;
@@ -24,7 +24,7 @@ pub struct DbBuilder<'t> {
 }
 
 impl<'t> DbBuilder<'t> {
-    pub fn new(conn: &rusqlite::Connection) -> Result<DbBuilder, Error> {
+    pub fn new(conn: &rusqlite::Connection) -> Result<DbBuilder> {
         let mut us = DbBuilder {
             conn,
             group_cache: ("group", HashMap::with_capacity(40 * 1_024)),
@@ -41,7 +41,7 @@ impl<'t> DbBuilder<'t> {
         Ok(us)
     }
 
-    pub fn create_string_tables(&self) -> Result<(), Error> {
+    pub fn create_string_tables(&self) -> Result<()> {
         for (name, _cache) in &[
             &self.group_cache,
             &self.artifact_cache,
@@ -67,7 +67,7 @@ create table if not exists {}_names (
     }
 
     #[rustfmt::skip]
-    pub fn write_examples(&mut self) -> Result<(), Error> {
+    pub fn write_examples(&mut self) -> Result<()> {
         write_examples(&self.conn, &mut self.group_cache,      include_str!("top/top_group.txt"))?;
         write_examples(&self.conn, &mut self.artifact_cache,   include_str!("top/top_artifact.txt"))?;
         write_examples(&self.conn, &mut self.classifier_cache, include_str!("top/top_classifier.txt"))?;
@@ -77,7 +77,7 @@ create table if not exists {}_names (
         Ok(())
     }
 
-    pub fn add(&mut self, doc: &Doc) -> Result<(), Error> {
+    pub fn add(&mut self, doc: &Doc) -> Result<()> {
         let group_name = string_write(&self.conn, &mut self.group_cache, &doc.id.group)?;
         let artifact_name = string_write(&self.conn, &mut self.artifact_cache, &doc.id.artifact)?;
         let name_name = option_write(&self.conn, &mut self.name_cache, doc.name.as_ref())?;
@@ -144,14 +144,14 @@ fn option_write(
     conn: &rusqlite::Connection,
     cache: &mut Cache,
     val: Option<&String>,
-) -> Result<Option<i64>, Error> {
+) -> Result<Option<i64>> {
     val.filter(|name| empty_filter(name.as_str()))
-        .map(|name| -> Result<i64, Error> { string_write(conn, cache, name) })
+        .map(|name| -> Result<i64> { string_write(conn, cache, name) })
         .inside_out()
 }
 
 #[inline]
-fn string_write(conn: &rusqlite::Connection, cache: &mut Cache, val: &str) -> Result<i64, Error> {
+fn string_write(conn: &rusqlite::Connection, cache: &mut Cache, val: &str) -> Result<i64> {
     let (table, cache) = cache;
     if let Some(id) = cache.get(val) {
         return Ok(*id);
@@ -175,7 +175,7 @@ fn string_write(conn: &rusqlite::Connection, cache: &mut Cache, val: &str) -> Re
             conn.prepare_cached(&format!("select id from {}_names where name=?", table))?
                 .query_row(&[val], |row| row.get(0))
                 .optional()?
-                .ok_or_else(|| err_msg("constraint violation, but row didn't exist"))?
+                .ok_or_else(|| anyhow!("constraint violation, but row didn't exist"))?
         }
         Err(e) => return Err(e.into()),
     };
@@ -190,7 +190,7 @@ fn write_examples(
     conn: &rusqlite::Connection,
     cache: &mut Cache,
     contents: &'static str,
-) -> Result<(), Error> {
+) -> Result<()> {
     for line in contents.trim().split('\n') {
         string_write(conn, cache, &line.trim().to_string())?;
     }

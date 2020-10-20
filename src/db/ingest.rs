@@ -2,9 +2,9 @@ use std::io;
 use std::mem;
 use std::thread;
 
-use failure::format_err;
-use failure::Error;
-use failure::ResultExt;
+use anyhow::anyhow;
+use anyhow::Context;
+use anyhow::Result;
 
 use crate::db;
 use crate::nexus::Doc;
@@ -29,10 +29,7 @@ mod channel {
     }
 }
 
-pub fn ingest<R: io::BufRead>(
-    from: R,
-    conn: rusqlite::Connection,
-) -> Result<rusqlite::Connection, Error> {
+pub fn ingest<R: io::BufRead>(from: R, conn: rusqlite::Connection) -> Result<rusqlite::Connection> {
     let (send, recv) = channel::new();
 
     let writer = thread::spawn(move || write(conn, recv));
@@ -42,7 +39,7 @@ pub fn ingest<R: io::BufRead>(
             Event::Doc(d) => send.send(d)?,
 
             Event::Error { error, raw } => {
-                Err(error).with_context(|_| format_err!("processing {:?}", raw))?
+                Err(error).with_context(|| anyhow!("processing {:?}", raw))?
             }
             Event::Delete(_) => (),
         }
@@ -51,17 +48,14 @@ pub fn ingest<R: io::BufRead>(
 
     mem::drop(send);
 
-    let conn = writer.join().map_err(|e| format_err!("panic: {:?}", e))??;
+    let conn = writer.join().map_err(|e| anyhow!("panic: {:?}", e))??;
 
     local_error?;
 
     Ok(conn)
 }
 
-fn write(
-    mut conn: rusqlite::Connection,
-    recv: channel::Receiver,
-) -> Result<rusqlite::Connection, Error> {
+fn write(mut conn: rusqlite::Connection, recv: channel::Receiver) -> Result<rusqlite::Connection> {
     let tran = conn.transaction()?;
 
     {

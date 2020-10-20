@@ -1,10 +1,10 @@
 use std::io;
 use std::io::BufRead;
 
+use anyhow::anyhow;
+use anyhow::Result;
 use byteorder::ReadBytesExt;
 use byteorder::BE;
-use failure::format_err;
-use failure::Error;
 
 pub struct DataInput<R: BufRead> {
     inner: R,
@@ -32,7 +32,7 @@ impl<R: BufRead> DataInput<R> {
         self.inner.read_i64::<BE>()
     }
 
-    pub fn read_utf8(&mut self, len: usize) -> Result<String, Error> {
+    pub fn read_utf8(&mut self, len: usize) -> Result<String> {
         if 0 == len {
             return Ok(String::new());
         }
@@ -41,7 +41,7 @@ impl<R: BufRead> DataInput<R> {
 
         match cesu8::from_java_cesu8(&buf) {
             Ok(s) => Ok(s.to_string()),
-            Err(e) => Err(format_err!(
+            Err(e) => Err(anyhow!(
                 "invalid 'modified' utf-8: {:?}: {:?}",
                 e,
                 String::from_utf8_lossy(&buf)
@@ -49,7 +49,7 @@ impl<R: BufRead> DataInput<R> {
         }
     }
 
-    pub fn check_eof(&mut self) -> Result<bool, Error> {
+    pub fn check_eof(&mut self) -> Result<bool> {
         Ok(self.inner.fill_buf()?.is_empty())
     }
 }

@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::Result;
 use rusqlite::Connection;
 
 mod builder;
@@ -9,7 +9,7 @@ pub use self::ingest::ingest;
 
 pub const SCHEMA: &str = include_str!("../../schema.sql");
 
-pub fn find_versions(conn: &Connection, group: &str, artifact: &str) -> Result<Vec<String>, Error> {
+pub fn find_versions(conn: &Connection, group: &str, artifact: &str) -> Result<Vec<String>> {
     Ok(conn
         .prepare_cached(
             r"

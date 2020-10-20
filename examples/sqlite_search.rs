@@ -1,7 +1,7 @@
 use std::fs;
 use std::io;
 
-use failure::Error;
+use anyhow::Result;
 
 use nexers::db;
 
@@ -9,7 +9,7 @@ use nexers::db;
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<()> {
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let conn = rusqlite::Connection::open("search.db")?;
     conn.execute_batch(db::SCHEMA)?;

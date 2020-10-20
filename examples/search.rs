@@ -1,10 +1,10 @@
 use std::io;
 
-use failure::Error;
+use anyhow::Result;
 
 use nexers::nexus::Event;
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<()> {
     use std::fs;
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let mut errors = 0;

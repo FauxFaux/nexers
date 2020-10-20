@@ -25,17 +25,13 @@ default = ["db"]
 db = ["rusqlite"]
 
 [dependencies]
+anyhow = "1"
 bitflags = "1"
 byteorder = "1"
 cesu8 = "1"
 hex = "0.4"
 insideout = "0.2"
 maplit = "1"
-
-[dependencies.failure]
-default-features = false
-features = ["std"]
-version = "0.1"
 
 [dependencies.rusqlite]
 features = ["bundled"]
