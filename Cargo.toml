@@ -2,7 +2,7 @@
 name = "nexers"
 version = "0.1.2"
 authors = ["Chris West (Faux) <git@goeswhere.com>"]
-edition = "2018"
+edition = "2021"
 
 description = "Parses Maven/Nexus repository index files"
 license = "MIT OR Apache-2.0"
