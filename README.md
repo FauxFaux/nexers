@@ -1,7 +1,6 @@
 # nexers 
 
 [![](https://img.shields.io/crates/v/nexers.svg)](https://crates.io/crates/nexers)
-[![](https://travis-ci.org/FauxFaux/nexers.svg)](https://travis-ci.org/FauxFaux/nexers)
 
 `nexers` parses Nexus repository indexes, including the one provided by
 [maven central](https://search.maven.org/). It can optionally build a relational

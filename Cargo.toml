@@ -12,9 +12,6 @@ categories = [
 readme = "README.md"
 repository = "https://github.com/FauxFaux/nexers"
 
-[badges.travis-ci]
-repository = "FauxFaux/nexers"
-
 [features]
 default = ["db"]
 
