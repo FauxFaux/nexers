@@ -20,6 +20,6 @@ fn main() -> Result<()> {
         }
         Ok(())
     })?;
-    println!("..and {} errors", errors);
+    println!("..and {errors} errors");
     Ok(())
 }

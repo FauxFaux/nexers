@@ -17,6 +17,6 @@ select version from versions
   where group_id=(select id from group_names where name=?)
     and artifact_id=(select id from artifact_names where name=?)",
         )?
-        .query_map(&[group, artifact], |row| row.get(0))?
+        .query_map([group, artifact], |row| row.get(0))?
         .collect::<Result<Vec<String>, _>>()?)
 }

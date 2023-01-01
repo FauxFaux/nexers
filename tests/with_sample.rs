@@ -20,7 +20,7 @@ fn load() -> Result<()> {
 
     let d = match &events[0] {
         Event::Doc(d) => d,
-        other => panic!("unexpected event: {:?}", other),
+        other => panic!("unexpected event: {other:?}"),
     };
 
     assert_eq!("yom", d.id.group);
@@ -31,7 +31,7 @@ fn load() -> Result<()> {
 
     let d = match &events[1] {
         Event::Doc(d) => d,
-        other => panic!("unexpected event: {:?}", other),
+        other => panic!("unexpected event: {other:?}"),
     };
 
     assert_eq!("yom", d.id.group);

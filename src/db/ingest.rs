@@ -60,7 +60,7 @@ fn write(mut conn: rusqlite::Connection, recv: channel::Receiver) -> Result<rusq
 
     {
         let mut db = db::DbBuilder::new(&tran)?;
-        while let Some(doc) = recv.recv().ok() {
+        while let Ok(doc) = recv.recv() {
             db.add(&doc)?;
         }
     }

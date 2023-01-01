@@ -128,10 +128,10 @@ fn read_doc(fields: &[(String, String)]) -> Result<Doc> {
     for (field_name, value) in fields {
         match field_name.as_str() {
             "u" => {
-                you = Some(read_uniq(&value).with_context(|| anyhow!("reading 'u': {:?}", value))?)
+                you = Some(read_uniq(value).with_context(|| anyhow!("reading 'u': {:?}", value))?)
             }
             "i" => {
-                eye = Some(read_info(&value).with_context(|| anyhow!("reading 'i': {:?}", value))?)
+                eye = Some(read_info(value).with_context(|| anyhow!("reading 'i': {:?}", value))?)
             }
             "m" => {
                 modified = Some(
@@ -142,7 +142,7 @@ fn read_doc(fields: &[(String, String)]) -> Result<Doc> {
             }
             "n" => name = Some(value.to_string()),
             "d" => description = Some(value.to_string()),
-            "1" => checksum = read_checksum(&value).ok(),
+            "1" => checksum = read_checksum(value).ok(),
 
             _ => (), // bail!("unrecognised field value: {:?}", field_name),
         }

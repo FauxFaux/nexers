@@ -53,11 +53,10 @@ impl<'t> DbBuilder<'t> {
             self.conn.execute(
                 &format!(
                     r"
-create table if not exists {}_names (
+create table if not exists {name}_names (
   id integer primary key,
   name varchar not null unique
-)",
-                    name
+)"
                 ),
                 [],
             )?;
@@ -68,27 +67,27 @@ create table if not exists {}_names (
 
     #[rustfmt::skip]
     pub fn write_examples(&mut self) -> Result<()> {
-        write_examples(&self.conn, &mut self.group_cache,      include_str!("top/top_group.txt"))?;
-        write_examples(&self.conn, &mut self.artifact_cache,   include_str!("top/top_artifact.txt"))?;
-        write_examples(&self.conn, &mut self.classifier_cache, include_str!("top/top_classifier.txt"))?;
-        write_examples(&self.conn, &mut self.packaging_cache,  include_str!("top/top_packaging.txt"))?;
-        write_examples(&self.conn, &mut self.name_cache,       include_str!("top/top_name.txt"))?;
-        write_examples(&self.conn, &mut self.desc_cache,       include_str!("top/top_desc.txt"))?;
+        write_examples(self.conn, &mut self.group_cache,      include_str!("top/top_group.txt"))?;
+        write_examples(self.conn, &mut self.artifact_cache,   include_str!("top/top_artifact.txt"))?;
+        write_examples(self.conn, &mut self.classifier_cache, include_str!("top/top_classifier.txt"))?;
+        write_examples(self.conn, &mut self.packaging_cache,  include_str!("top/top_packaging.txt"))?;
+        write_examples(self.conn, &mut self.name_cache,       include_str!("top/top_name.txt"))?;
+        write_examples(self.conn, &mut self.desc_cache,       include_str!("top/top_desc.txt"))?;
         Ok(())
     }
 
     pub fn add(&mut self, doc: &Doc) -> Result<()> {
-        let group_name = string_write(&self.conn, &mut self.group_cache, &doc.id.group)?;
-        let artifact_name = string_write(&self.conn, &mut self.artifact_cache, &doc.id.artifact)?;
-        let name_name = option_write(&self.conn, &mut self.name_cache, doc.name.as_ref())?;
-        let desc_name = option_write(&self.conn, &mut self.desc_cache, doc.description.as_ref())?;
+        let group_name = string_write(self.conn, &mut self.group_cache, &doc.id.group)?;
+        let artifact_name = string_write(self.conn, &mut self.artifact_cache, &doc.id.artifact)?;
+        let name_name = option_write(self.conn, &mut self.name_cache, doc.name.as_ref())?;
+        let desc_name = option_write(self.conn, &mut self.desc_cache, doc.description.as_ref())?;
 
         let shared_cache = &mut self.packaging_cache;
-        let pkg_name = option_write(&self.conn, shared_cache, Some(&doc.object_info.packaging))?;
-        let ext_name = string_write(&self.conn, shared_cache, &doc.object_info.extension)?;
+        let pkg_name = option_write(self.conn, shared_cache, Some(&doc.object_info.packaging))?;
+        let ext_name = string_write(self.conn, shared_cache, &doc.object_info.extension)?;
 
         let classifier_name = option_write(
-            &self.conn,
+            self.conn,
             &mut self.classifier_cache,
             doc.id.classifier.as_ref(),
         )?;
@@ -119,7 +118,7 @@ insert into versions
   ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ",
             )?
-            .insert(&[
+            .insert([
                 &group_name as &dyn ToSql,
                 &artifact_name,
                 &doc.id.version,
@@ -165,15 +164,15 @@ fn string_write(conn: &rusqlite::Connection, cache: &mut Cache, val: &str) -> Re
     );
 
     let new_id = match conn
-        .prepare_cached(&format!("insert into {}_names (name) values (?)", table))?
-        .insert(&[val])
+        .prepare_cached(&format!("insert into {table}_names (name) values (?)"))?
+        .insert([val])
     {
         Ok(id) => id,
         Err(rusqlite::Error::SqliteFailure(e, ref _msg))
             if rusqlite::ErrorCode::ConstraintViolation == e.code =>
         {
-            conn.prepare_cached(&format!("select id from {}_names where name=?", table))?
-                .query_row(&[val], |row| row.get(0))
+            conn.prepare_cached(&format!("select id from {table}_names where name=?"))?
+                .query_row([val], |row| row.get(0))
                 .optional()?
                 .ok_or_else(|| anyhow!("constraint violation, but row didn't exist"))?
         }
@@ -192,7 +191,7 @@ fn write_examples(
     contents: &'static str,
 ) -> Result<()> {
     for line in contents.trim().split('\n') {
-        string_write(conn, cache, &line.trim().to_string())?;
+        string_write(conn, cache, line.trim())?;
     }
     Ok(())
 }
