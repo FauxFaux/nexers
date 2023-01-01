@@ -59,7 +59,7 @@ create table if not exists {}_names (
 )",
                     name
                 ),
-                rusqlite::NO_PARAMS,
+                [],
             )?;
         }
 
