@@ -24,7 +24,7 @@ db = ["rusqlite"]
 
 [dependencies]
 anyhow = "1"
-bitflags = "1"
+bitflags = "2"
 byteorder = "1"
 cesu8 = "1"
 hex = "0.4"
@@ -34,7 +34,7 @@ maplit = "1"
 [dependencies.rusqlite]
 features = ["bundled"]
 optional = true
-version = "0.28"
+version = "0.30"
 
 [dependencies.crossbeam-channel]
 optional = true
