@@ -10,16 +10,6 @@ use crate::db;
 use crate::nexus::Doc;
 use crate::nexus::Event;
 
-#[cfg(feature = "crossbeam-channel")]
-mod channel {
-    pub type Sender = crossbeam_channel::Sender<super::Doc>;
-    pub type Receiver = crossbeam_channel::Receiver<super::Doc>;
-    pub fn new() -> (Sender, Receiver) {
-        crossbeam_channel::bounded(65_536)
-    }
-}
-
-#[cfg(not(feature = "crossbeam-channel"))]
 mod channel {
     use std::sync::mpsc;
     pub type Sender = mpsc::SyncSender<super::Doc>;

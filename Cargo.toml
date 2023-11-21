@@ -17,7 +17,6 @@ include = ["README.md", "LICENSE", "src/", "examples/", "schema.sql"]
 default = ["db"]
 
 # jemallocator: use the allocator (e.g. in examples), 30% speedup
-# crossbeam-channel: use instead of mpsc's sync channel, ~5% speedup
 
 # enable the database writing code
 db = ["rusqlite"]
@@ -35,10 +34,6 @@ maplit = "1"
 features = ["bundled"]
 optional = true
 version = "0.30"
-
-[dependencies.crossbeam-channel]
-optional = true
-version = "0.5"
 
 [dependencies.jemallocator]
 optional = true
