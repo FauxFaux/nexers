@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::convert::TryFrom;
 use std::io::BufRead;
 
@@ -71,12 +70,7 @@ where
             None => break,
         };
 
-        let names = fields
-            .iter()
-            .map(|(key, _value)| key)
-            .collect::<HashSet<_>>();
-
-        if names.iter().any(|name| name.is_other_eq("del")) {
+        if fields.iter().any(|(name, _)| name.is_other_eq("del")) {
             cb(Event::Delete(read_uniq(
                 fields
                     .iter()
@@ -92,8 +86,8 @@ where
             continue;
         }
 
-        if names.len() == 2 {
-            let has = |s: &'static str| names.iter().any(|name| name.is_other_eq(s));
+        if fields.len() == 2 {
+            let has = |s: &'static str| fields.iter().any(|(name, _)| name.is_other_eq(s));
             if has("DESCRIPTOR") && has("IDXINFO") {
                 continue;
             }
@@ -105,7 +99,8 @@ where
             }
         }
 
-        if !(names.contains(&Name::U) && names.contains(&Name::I) && names.contains(&Name::M)) {
+        let has = |name: &Name| fields.iter().any(|(key, _)| key == name);
+        if !(has(&Name::U) && has(&Name::I) && has(&Name::M)) {
             // TODO: move checker fails on 'fields' here
             cb(Event::Error {
                 error: anyhow!("unrecognised doc type"),
