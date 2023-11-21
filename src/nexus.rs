@@ -9,7 +9,6 @@ use anyhow::Context;
 use anyhow::Result;
 use bitflags::bitflags;
 use hex;
-use maplit::hashset;
 
 use crate::java::DataInput;
 
@@ -51,7 +50,7 @@ pub enum Event {
     Delete(UniqId),
     Error {
         error: anyhow::Error,
-        raw: Vec<(String, String)>,
+        raw: Vec<(Name, String)>,
     },
 }
 
@@ -74,32 +73,39 @@ where
 
         let names = fields
             .iter()
-            .map(|(key, _value)| key.as_str())
+            .map(|(key, _value)| key)
             .collect::<HashSet<_>>();
 
-        if names.contains("del") {
+        if names.iter().any(|name| name.is_other_eq("del")) {
             cb(Event::Delete(read_uniq(
                 fields
                     .iter()
-                    .find_map(|(key, value)| if "del" == key { Some(value) } else { None })
+                    .find_map(|(key, value)| {
+                        if key.is_other_eq("del") {
+                            Some(value)
+                        } else {
+                            None
+                        }
+                    })
                     .expect("just checked"),
             )?))?;
             continue;
         }
 
-        if hashset!("DESCRIPTOR", "IDXINFO") == names {
-            continue;
+        if names.len() == 2 {
+            let has = |s: &'static str| names.iter().any(|name| name.is_other_eq(s));
+            if has("DESCRIPTOR") && has("IDXINFO") {
+                continue;
+            }
+            if has("rootGroups") && has("rootGroupsList") {
+                continue;
+            }
+            if has("allGroups") && has("allGroupsList") {
+                continue;
+            }
         }
 
-        if hashset!("rootGroups", "rootGroupsList") == names {
-            continue;
-        }
-
-        if hashset!("allGroups", "allGroupsList") == names {
-            continue;
-        }
-
-        if !(names.contains("u") && names.contains("i") && names.contains("m")) {
+        if !(names.contains(&Name::U) && names.contains(&Name::I) && names.contains(&Name::M)) {
             // TODO: move checker fails on 'fields' here
             cb(Event::Error {
                 error: anyhow!("unrecognised doc type"),
@@ -117,7 +123,7 @@ where
     Ok(())
 }
 
-fn read_doc(fields: &[(String, String)]) -> Result<Doc> {
+fn read_doc(fields: &[(Name, String)]) -> Result<Doc> {
     let mut you = None;
     let mut eye = None;
     let mut modified = None;
@@ -126,23 +132,23 @@ fn read_doc(fields: &[(String, String)]) -> Result<Doc> {
     let mut checksum = None;
 
     for (field_name, value) in fields {
-        match field_name.as_str() {
-            "u" => {
+        match field_name {
+            Name::U => {
                 you = Some(read_uniq(value).with_context(|| anyhow!("reading 'u': {:?}", value))?)
             }
-            "i" => {
+            Name::I => {
                 eye = Some(read_info(value).with_context(|| anyhow!("reading 'i': {:?}", value))?)
             }
-            "m" => {
+            Name::M => {
                 modified = Some(
                     value
                         .parse::<u64>()
                         .with_context(|| anyhow!("reading 'm': {:?}", value))?,
                 )
             }
-            "n" => name = Some(value.to_string()),
-            "d" => description = Some(value.to_string()),
-            "1" => checksum = read_checksum(value).ok(),
+            Name::N => name = Some(value.to_string()),
+            Name::D => description = Some(value.to_string()),
+            Name::Checksum => checksum = read_checksum(value).ok(),
 
             _ => (), // bail!("unrecognised field value: {:?}", field_name),
         }
@@ -158,7 +164,7 @@ fn read_doc(fields: &[(String, String)]) -> Result<Doc> {
     })
 }
 
-fn read_fields<R: BufRead>(f: &mut DataInput<R>) -> Result<Option<Vec<(String, String)>>> {
+fn read_fields<R: BufRead>(f: &mut DataInput<R>) -> Result<Option<Vec<(Name, String)>>> {
     if f.check_eof()? {
         return Ok(None);
     }
@@ -177,12 +183,44 @@ fn read_fields<R: BufRead>(f: &mut DataInput<R>) -> Result<Option<Vec<(String, S
     Ok(Some(ret))
 }
 
-fn read_field<R: BufRead>(f: &mut DataInput<R>) -> Result<(String, String)> {
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub enum Name {
+    U,
+    I,
+    N,
+    D,
+    M,
+    Checksum,
+    Other(String),
+}
+
+impl Name {
+    fn is_other_eq(&self, other: &str) -> bool {
+        match self {
+            Name::Other(s) => s == other,
+            _ => false,
+        }
+    }
+}
+
+fn read_field<R: BufRead>(f: &mut DataInput<R>) -> Result<(Name, String)> {
     let flags = u8::try_from(f.read_byte()?)?;
     let _flags = FieldFlag::from_bits(flags).ok_or_else(|| anyhow!("decoding field flags"))?;
 
     let name_len = f.read_unsigned_short()?;
-    let name = f.read_utf8(usize::try_from(name_len).unwrap())?;
+    let name = match name_len {
+        0 => bail!("zero-length field name"),
+        1 => match f.read_byte()? as u8 {
+            b'u' => Name::U,
+            b'i' => Name::I,
+            b'n' => Name::N,
+            b'm' => Name::M,
+            b'd' => Name::D,
+            b'1' => Name::Checksum,
+            other => Name::Other(char::try_from(u32::from(other))?.to_string()),
+        },
+        _ => Name::Other(f.read_utf8(usize::try_from(name_len)?)?),
+    };
 
     // yup, they went out of their way to use signed data here
     let value_len = usize::try_from(f.read_int()?)?;

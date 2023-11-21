@@ -28,7 +28,6 @@ byteorder = "1"
 cesu8 = "1"
 hex = "0.4"
 insideout = "0.2"
-maplit = "1"
 
 [dependencies.rusqlite]
 features = ["bundled"]
