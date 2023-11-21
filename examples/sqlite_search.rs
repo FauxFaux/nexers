@@ -5,10 +5,6 @@ use anyhow::Result;
 
 use nexers::db;
 
-#[cfg(feature = "jemallocator")]
-#[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
-
 fn main() -> Result<()> {
     let from = io::BufReader::new(fs::File::open("sample-index")?);
     let conn = rusqlite::Connection::open("search.db")?;

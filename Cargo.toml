@@ -16,8 +16,6 @@ include = ["README.md", "LICENSE", "src/", "examples/", "schema.sql"]
 [features]
 default = ["db"]
 
-# jemallocator: use the allocator (e.g. in examples), 30% speedup
-
 # enable the database writing code
 db = ["rusqlite"]
 
@@ -34,10 +32,6 @@ insideout = "0.2"
 features = ["bundled"]
 optional = true
 version = "0.30"
-
-[dependencies.jemallocator]
-optional = true
-version = "0.5"
 
 [[example]]
 name = "sqlite_search"
