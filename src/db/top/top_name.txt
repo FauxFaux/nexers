@@ -1,256 +1,256 @@
 ${project.groupId}:${project.artifactId}
 ${project.artifactId}
+OpenTelemetry Instrumentation for Java
+Hyperdrive
+xef
 core
-Apache ServiceMix :: Bundles :: ${pkgArtifactId}
-Grails
-ammonite-sshd
-ammonite
-ammonite-repl
-ammonite-compiler
-Restcomm :: Diameter Resources :: ${pom.artifactId}
-${project.groupId}.${project.artifactId}
-ammonite-shell
-AVSystem commons
-Groovy
-IronJacamar
-Restcomm :: Resources :: ${pom.artifactId}
-uPortal
-ammonite-util
-ammonite-runtime
-Klutter for Kotlin
-${extension.name} API v.${spec.version}
-Zipkin
-Grails GORM
-Keycloak
-GroupBy - API - Java
-Smack
-aws-java-sdk-samples
-aws-java-sdk-sample-extractor
-aws-java-sdk-handwritten-samples
-aws-java-sdk-generated-samples
+Micronaut
+KMP-NativeCoroutines
+Stately
+Kermit
+Avito Android Infrastructure
+kork
+Kotest
+Cybrid Kotlin SDK
+Micronaut Oracle Cloud
+Gradle Plugins
+jimmer
+ton-kotlin
 Apache Groovy
-AbacusUtil
-monix
-WSO2 Carbon - Sample API
-Restcomm :: Resources :: ${project.artifactId}
-${project.artifactId} OSGi Bundle
+Micronaut Libraries
+Apache ServiceMix :: Bundles :: ${pkgArtifactId}
+kotlin-css
+orca
+Multiplatform Settings
+raptor
+bk-ci
+ODL :: aaa :: ${project.artifactId}
+Grails
+Micronaut AWS
+mobiuskt
+Ktorfit
+report
+Apache Kafka
+standard
+async
+korau
+Tuulbox
+minspy
+mindiff
+minassert
+wdio
+Krayon
+react-data-loader
+minreact
+minenzyme
 macros
-fintrospect
-AWS Java SDK for Elastic Load Balancing
-refined
-${artifactId}
-Ciris
-client
-Fabric3
-server
+KVision
+minjson
+secretk
+OpenTelemetry Java
+NSExceptionKt
 common
-ammonite-ops
+ODL :: odlparent :: ${project.artifactId}
+AboutLibraries Library
+supabase-kt
+storage-kt
+realtime-kt
+postgrest-kt
+gotrue-kt
+functions-kt
+clouddriver
+SoftiCAR Platform
+MOKO mvvm
+korim
+action
+detekt
+atlasdb-jepsen-tests
+${project.groupId}.${project.artifactId}
+Arrow Annotations
+Arrow Continuations
+Arrow Optics
+Arrow-Fx-Coroutines
+Arrow-Fx-STM
+Arrow Core Extensions
+Koject
+CosId
+Wow
+plugin
+korge
+klock
+ktor-utils
+I2
+semanticcpg
+Strapi-Kmm
+Essenty
+ODL :: infrautils :: ${project.artifactId}
+kmem
+wdio-testing-library
+Micronaut Framework
+korgw
+solana
+korio
+Apache Iceberg
+korte
+ktor-io
+krypto
+kds
+apollo-graphql
+korma
+ktor-network
+klogger
+Micronaut Data
+WSO2 Carbon - Sample API
+fs2-core
+Smack
+korinject
+Buffer
+compose-imageLoader
+kryptools
+${project.groupId} ::: ${project.artifactId}
+dataflowengineoss
+ktor-client-core
+ktor-http
+ktor-http-cio
+ktor-client-mock
+ktor-client-json
+ktor-client-logging
+Micronaut Test Resources
+CoSec
+ktor-client-tests
+ktor-client-auth
+StateMachine
+ktor-client-serialization
+ktor-client-encoding
+ktor-client-websockets
+c2cpg
+SKIE Runtime - Kotlin
+Framework enabling pulverization
+jreleaser
+commons-api
+timestamp-impl
+timestamp-client
+timestamp-api
+timelock-server
+timelock-impl
+timelock-corruption-detection
+timelock-api-jersey
+timelock-api-dialogue
+timelock-api
+timelock-agent
+lock-impl
+lock-conjure-api-undertow
+lock-conjure-api-objects
+lock-conjure-api-jersey
+lock-conjure-api-dialogue
+lock-conjure-api
+lock-api-objects
+lock-api
+leader-election-impl
+leader-election-api-protobufs
+leader-election-api
+flake-rule
+commons-proxy
+commons-executors-api
+commons-executors
+commons-db
+commons-annotations
+cassandra-partitioner
+atlasdb-tests-shared
+atlasdb-service
+atlasdb-remoting-api
+atlasdb-processors-tests
+atlasdb-processors
+atlasdb-impl-shared
+atlasdb-ete-tests
+atlasdb-ete-test-utils
+atlasdb-dbkvs-tests
+atlasdb-dbkvs-hikari
+atlasdb-dbkvs
+atlasdb-coordination-impl
+atlasdb-container-test-utils
+atlasdb-console
+atlasdb-conjure
+atlasdb-config
+atlasdb-commons
+atlasdb-client
+atlasdb-cli
+atlasdb-cassandra-multinode-tests
+atlasdb-cassandra-integration-tests
+atlasdb-autobatch
+atlasdb-api
+ktor-test-dispatcher
+timelock-corruption-detection-objects
+timelock-corruption-detection-jersey
+timelock-corruption-detection-dialogue
+timelock-api-undertow
+timelock-api-objects
+atlasdb-perf
+atlasdb-client-protobufs
+timelock-corruption-detection-undertow
+atlasdb-dagger
+atlasdb-cassandra
+action-async
+Micronaut SQL Libraries
+micro_utils.coroutines
+micro_utils.common
+micro_utils.crypto
+AVSystem commons
+micro_utils.repos.ktor.common
+micro_utils.repos.ktor.client
+micro_utils.repos.inmemory
+micro_utils.repos.common
+micro_utils.pagination.ktor.common
+micro_utils.pagination.common
+micro_utils.mime_types
+micro_utils.ktor.common
+micro_utils.ktor.client
+kbignum
+Teamscale Commons
+micro_utils.selector.common
+micro_utils.serialization.encapsulator
+micro_utils.serialization.base64
+micro_utils.matrix
+Teamscale Lib Commons
+Micronaut Micrometer
+Teamscale Custom Check API
+ODL :: ovsdb :: ${project.artifactId}
+app.softwork KOBOL
+kotlinx-coroutines-core
+console
+Teamscale Simulink
+ammonite-sshd
+monix
+java-enhancement-kit
+ktor-network-tls
+ktor-client-cio
+micro_utils.repos.cache
+ammonite
+Kodein-DI
+fixture-monkey
+micro_utils.serialization.typed_serializer
+mica
+Apollo GraphQL SQLite Cache
+JavierSC Kotlin stdlib
+ktor-client-ios
 testing
-API for plugins of GoCD
-Gogs
-ammonite-terminal
-Restcomm jSS7 :: Management-jmx :: ${project.artifactId}
-WSO2 Carbon - Service Principle Management UI
-util
-Apache Cassandra
-Vaadin
-cas-server
-Search Guard
-scalaz-scalacheck-binding
-WSO2 Carbon - Identity Application Authentication Endpoint
-WSO2 Carbon - Identity Claim Metadata Management Stub
-Affinity Library
-Android Library
-scalaz-core
-JaVers
-Nextflow
-scalaz-effect
-scalaz-iteratee
-WSO2 Carbon - Identity Management
-WSO2 Carbon - Entitlement Stub
-WSO2 Carbon - Application Management UI
-circe
-quasar-core-internal
-quasar-web
-SnappyData
-quasar-foundation-internal
-Expose Controller
-Restcomm jSS7 :: Hardware :: ${project.artifactId}
-quasar-connector-internal
-quasar-frontend-internal
-quasar-common-internal
-Fabric8 Online :: Packages :: Team
-json4s
-specs2-scalacheck
-specs2-matcher
-specs2-core
-WSO2 Carbon - User Mgt Workflow Stub
-WSO2 Carbon - User Management Stub
-WSO2 Carbon - Security Stub
-WSO2 Carbon - Identity Provider Mgt Stub
-WSO2 Carbon - Identity Provider Management Bundle
-WSO2 Carbon - Workflow Management UI
-WSO2 Carbon - Workflow Mgt Stub
-WSO2 Carbon - User Store Count Stub
-WSO2 Carbon - User Store Config Stub
-WSO2 Carbon - Identity User Registration Stub
-WSO2 Carbon - User Profile Management Stub
-WSO2 Carbon - Identity Management Stub
-WSO2 Carbon - Identity Governance Stub
-WSO2 Carbon - Identity Event
-WSO2 Carbon - Identity Core
-WSO2 Carbon - Identity Base
-WSO2 Carbon - Identity Application Management Stub
-WSO2 Carbon - Identity Application Common Bundle
-WSO2 Carbon - Claim Management Stub
-WSO2 Carbon - User Management Common
-WSO2 Carbon - Service Principle Management Stub
-specs2-mock
-WSO2 Carbon - User Management
-WSO2 Carbon - Security BE
-WSO2 Carbon - User store Configuration Component
-WSO2 Carbon - User Profile Management
-WSO2 Carbon - Notification Management BE
-WSO2 Carbon - Identity Entitlement UI
-WSO2 Carbon - Entitlement REST
-WSO2 Carbon - Identity Entitlement Common
-WSO2 Carbon - Identity Entitlement
-WSO2 Carbon - Identity Claim Metadata Management BE
-WSO2 Carbon - Thrift based Authentication Service
-WSO2 Identity- Application Management Component
-WSO2 Carbon - Identity Application Authentication Framework
-WSO2 Carbon - Server Management Common
-WSO2 Carbon - Directory server manager
-specs2-common
-WSO2 Carbon - User Management UI
-WSO2 Carbon - Security UI
-WSO2 Carbon - Policy Editor BE
-WSO2 Carbon - Identity Provider Management UI Bundle
-WSO2 Carbon - Workflow Mgt
-WSO2 Carbon - Identity User Store Counts
-WSO2 Carbon - Identity User Store Configuration UI
-WSO2 Carbon - Identity User Store Configuration Deployment
-WSO2 Carbon - Identity User Registration
-WSO2 Carbon - User Profile Management UI
-WSO2 Carbon - Identity Provisioning
-WSO2 Carbon - Identity Management UI
-WSO2 Carbon - Identity Management Endpoint
-WSO2 Carbon - Identity Claim Metadata Management UI
-WSO2 Carbon - Claim Management UI
-WSO2 Carbon - Claim Management BE
-specs2-matcher-extra
-specs2-junit
-specs2-analysis
-Mobicents :: Diameter Resources :: ${pom.artifactId}
-Fabric8 Online :: Apps :: Bayesian Integration
-Restcomm jSS7 :: Management :: ${project.artifactId}
-WSO2 Carbon - Identity Common Test Util
-bootstrap
-Scala.js compiler
-Jenkins
-scalaz
-Prometheus
-Fabric8 Online :: Packages :: Platform :: Minimal
-Fabric8 Online :: Packages :: Jenkins
-Fabric8 Online :: Apps :: UI
-AWS SDK for Java - Core
-WSO2 Carbon - Siddhi Metrics Core
-AWS Java SDK for AWS Support
-AWS Java SDK for AWS STS
-AWS Java SDK for AWS Storage Gateway
-AWS Java SDK for Amazon SQS
-AWS Java SDK for Amazon SNS
-AWS Java SDK for Amazon SWF
-AWS Java SDK for Amazon SimpleDB
-AWS Java SDK for Amazon SES
-AWS Java SDK for Amazon S3
-AWS Java SDK for Amazon Route53
-AWS Java SDK for Amazon Redshift
-AWS Java SDK for Amazon RDS
-AWS Java SDK for AWS OpsWorks
-AWS Java SDK for Amazon CloudWatch Logs
-AWS Java SDK for Amazon Kinesis
-AWS Java SDK for AWS Import/Export
-AWS Java SDK for AWS IAM
-AWS Java SDK for Amazon Glacier
-AWS Java SDK for Amazon EMR
-AWS Java SDK for Amazon Elastic Transcoder
-AWS Java SDK for AWS Elastic Beanstalk
-AWS Java SDK for Amazon ElastiCache
-AWS Java SDK for Amazon EC2
-AWS Java SDK for Amazon DynamoDB
-AWS Java SDK for AWS Direct Connect
-AWS Java SDK for AWS Data Pipeline
-AWS Java SDK for Amazon Cognito Sync
-AWS Java SDK for Amazon Cognito Identity
-CloudWatch Metrics for AWS Java SDK
-AWS Java SDK for Amazon CloudWatch
-AWS Java SDK for AWS CloudTrail
-AWS Java SDK for Amazon CloudSearch
-AWS Java SDK for Amazon CloudFront
-AWS Java SDK for AWS CloudFormation
-AWS Java SDK for Auto Scaling
-WSO2 Carbon - Service Stubs - Aggregator Module
-AWS Java SDK for AWS KMS
-AWS Java SDK for AWS Config
-AWS Java SDK for AWS CodeDeploy
-AWS Java SDK for AWS Lambda
-gateleen
-Fabric8 Online :: Packages :: Che
-Hudson core
-AWS SDK For Java for OSGi
-AWS Java SDK for the Amazon EC2 Container Service
-AWS Java SDK for the AWS CloudHSM
-ConfigMap Controller
-SonarQube
-Elasticsearch
-AWS Java SDK for the AWS Simple Systems Management (SSM) Service
-${project.artifactId}-${project.version}
-dotty-interfaces
-json4s-native
-json4s-jackson
-AWS Java SDK for Amazon WorkSpaces
-AWS Java SDK for Amazon Machine Learning
-argonaut
-AWS Java SDK for AWS Directory Service
-jmx
-AWS Java SDK for Amazon Elastic File System
-specs2-markdown
-specs2-html
-specs2-gwt
-specs2-form
-quasar-interface-internal
-AWS Java SDK for AWS CodePipeline
-AWS Java SDK for AWS CodeCommit
-AWS Java SDK for AWS Device Farm
-AWS SDK for Java - Test Utils
-scala-library
-Rice KEW API
-root
-WSO2 API Manager Throttle Data Service
-WSO2 Carbon - Forum Component
-WSO2 Carbon - API Management Usage Publisher
-WSO2 Carbon - API Management Usage Client
-WSO2 Carbon - Tier Cache Service Stub
-WSO2 API Manager Throttling Siddhi Extension
-WSO2 Carbon - API Manager Incerceptor for throttle data service
-WSO2 Carbon - API Stat Publishing Status Update Service Stub
-WSO2 Carbon - API Manager Rest API Utility
-WSO2 API Manager Store REST API
-WSO2 API Manager Publisher REST API
-WSO2 Carbon API Manager- Dynamic Client Registration Web Service
-WSO2 API Manager Admin REST API
-WSO2 Carbon - Registry Cache Invalidation Service Stub
-WSO2 Carbon - API Key Management Stub
-WSO2 Carbon - API Key Mgt Client
-WSO2 Carbon - API Key Mgt
-WSO2 Carbon - API Management Implementation
-WSO2 Carbon -OIDC HostObject
-WSO2 Carbon - HostObject for API management
-WSO2 Carbon - API Security Handler Service Stub
-WSO2 Carbon - API Gateway Management Stub
-WSO2 Carbon - API Gateway
-WSO2 Carbon - API Management Core
-OIDC SSO Authenticator - UI bundle
-WSO2 Carbon - OpenID Connect Authenticator Stub
-OIDC Authenticator - BE bundle
+purchases-android
+Kable
+ammonite-repl
+micro_utils.fsm.repos.common
+micro_utils.fsm.common
+trixnity-olm
+mohist
+keel
+javasrc2cpg
+model
+Apollo GraphQL Normalized Cache Common APIs
+x2cpg
+micro_utils.language_codes
+AWS Java SDK for Elastic Load Balancing
+Apollo GraphQL Normalized Cache APIs
+cats
+CrashKios
+MQTT Base Models
+factoryfx
+jimple2cpg

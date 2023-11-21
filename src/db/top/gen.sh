@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -eu
 
-REF=../../search.db
+REF=$1
 
 for n in group artifact name desc classifier; do
   echo "select (select name from ${n}_names where id=fid) name \
