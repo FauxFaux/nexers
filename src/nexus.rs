@@ -231,10 +231,8 @@ fn read_field<R: BufRead>(f: &mut DataInput<R>) -> Result<(Name, String)> {
 
 #[inline]
 fn read_checksum(value: &str) -> Result<[u8; 20]> {
-    let decoded = hex::decode(value).with_context(|| anyhow!("decoding checksum"))?;
-    ensure!(20 == decoded.len(), "checksum was wrong length");
     let mut arr = [0u8; 20];
-    arr.copy_from_slice(&decoded);
+    hex::decode_to_slice(value, &mut arr).with_context(|| anyhow!("decoding checksum"))?;
     Ok(arr)
 }
 

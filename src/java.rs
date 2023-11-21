@@ -39,6 +39,12 @@ impl<R: BufRead> DataInput<R> {
         let mut buf = vec![0u8; len];
         self.inner.read_exact(&mut buf)?;
 
+        // cesu is a superset of utf-8, so try that first
+        let buf = match String::from_utf8(buf) {
+            Ok(s) => return Ok(s),
+            Err(e) => e.into_bytes(),
+        };
+
         match cesu8::from_java_cesu8(&buf) {
             Ok(s) => Ok(s.to_string()),
             Err(e) => Err(anyhow!(

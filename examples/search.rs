@@ -1,3 +1,5 @@
+use std::env;
+use std::fs;
 use std::io;
 
 use anyhow::Result;
@@ -5,8 +7,9 @@ use anyhow::Result;
 use nexers::nexus::Event;
 
 fn main() -> Result<()> {
-    use std::fs;
-    let from = io::BufReader::new(fs::File::open("sample-index")?);
+    let args = env::args().skip(1).collect::<Vec<_>>();
+    let path = args.get(0).map(|s| s.as_str()).unwrap_or("sample-index");
+    let from = io::BufReader::new(fs::File::open(path)?);
     let mut errors = 0;
     nexers::nexus::read(from, |event| {
         match event {
