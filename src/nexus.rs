@@ -7,7 +7,7 @@ use anyhow::ensure;
 use anyhow::Context;
 use anyhow::Result;
 use bitflags::bitflags;
-use compact_str::CompactString;
+use compact_str::{CompactString, ToCompactString};
 use hex;
 
 use crate::java::DataInput;
@@ -179,7 +179,7 @@ fn read_fields<R: BufRead>(f: &mut DataInput<R>) -> Result<Option<Vec<(Name, Str
     Ok(Some(ret))
 }
 
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Name {
     U,
     I,
@@ -187,13 +187,13 @@ pub enum Name {
     D,
     M,
     Checksum,
-    Other(String),
+    Other(CompactString),
 }
 
 impl Name {
     fn is_other_eq(&self, other: &str) -> bool {
         match self {
-            Name::Other(s) => s == other,
+            Name::Other(s) => s.as_str() == other,
             _ => false,
         }
     }
@@ -213,9 +213,10 @@ fn read_field<R: BufRead>(f: &mut DataInput<R>) -> Result<(Name, String)> {
             b'm' => Name::M,
             b'd' => Name::D,
             b'1' => Name::Checksum,
-            other => Name::Other(char::try_from(u32::from(other))?.to_string()),
+            // there are currently no hits for this:
+            other => Name::Other(char::try_from(u32::from(other))?.to_compact_string()),
         },
-        _ => Name::Other(f.read_utf8(usize::try_from(name_len)?)?),
+        _ => Name::Other(f.read_utf8(usize::try_from(name_len)?)?.to_compact_string()),
     };
 
     // yup, they went out of their way to use signed data here
