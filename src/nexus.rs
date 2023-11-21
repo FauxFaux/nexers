@@ -7,6 +7,7 @@ use anyhow::ensure;
 use anyhow::Context;
 use anyhow::Result;
 use bitflags::bitflags;
+use compact_str::CompactString;
 use hex;
 
 use crate::java::DataInput;
@@ -15,22 +16,22 @@ pub type Checksum = [u8; 20];
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct UniqId {
-    pub group: String,
-    pub artifact: String,
-    pub version: String,
-    pub classifier: Option<String>,
-    pub extension: Option<String>,
+    pub group: CompactString,
+    pub artifact: CompactString,
+    pub version: CompactString,
+    pub classifier: Option<CompactString>,
+    pub extension: Option<CompactString>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FullInfo {
-    pub packaging: String,
+    pub packaging: CompactString,
     pub last_modified: u64,
     pub size: Option<u64>,
     pub source_attached: AttachmentStatus,
     pub javadoc_attached: AttachmentStatus,
     pub signature_attached: AttachmentStatus,
-    pub extension: String,
+    pub extension: CompactString,
 }
 
 #[derive(Debug)]
@@ -238,22 +239,22 @@ fn read_uniq(value: &str) -> Result<UniqId> {
         group: parts
             .next()
             .ok_or_else(|| anyhow!("short uniq: group"))?
-            .to_string(),
+            .into(),
         artifact: parts
             .next()
             .ok_or_else(|| anyhow!("short uniq: artifact"))?
-            .to_string(),
+            .into(),
         version: parts
             .next()
             .ok_or_else(|| anyhow!("short uniq: version"))?
-            .to_string(),
+            .into(),
         classifier: not_na(
             parts
                 .next()
                 .ok_or_else(|| anyhow!("short uniq: classifier"))?,
         )
-        .map(|v| v.to_string()),
-        extension: parts.next().map(|v| v.to_string()),
+        .map(|v| v.into()),
+        extension: parts.next().map(|v| v.into()),
     })
 }
 
@@ -263,7 +264,7 @@ fn read_info(value: &str) -> Result<FullInfo> {
         packaging: parts
             .next()
             .ok_or_else(|| anyhow!("short info: packaging"))?
-            .to_string(),
+            .into(),
         last_modified: parts
             .next()
             .ok_or_else(|| anyhow!("short info: time"))?
@@ -284,7 +285,7 @@ fn read_info(value: &str) -> Result<FullInfo> {
         extension: parts
             .next()
             .ok_or_else(|| anyhow!("short info: extension"))?
-            .to_string(),
+            .into(),
     })
 }
 

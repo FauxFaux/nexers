@@ -79,8 +79,16 @@ create table if not exists {name}_names (
     pub fn add(&mut self, doc: &Doc) -> Result<()> {
         let group_name = string_write(self.conn, &mut self.group_cache, &doc.id.group)?;
         let artifact_name = string_write(self.conn, &mut self.artifact_cache, &doc.id.artifact)?;
-        let name_name = option_write(self.conn, &mut self.name_cache, doc.name.as_ref())?;
-        let desc_name = option_write(self.conn, &mut self.desc_cache, doc.description.as_ref())?;
+        let name_name = option_write(
+            self.conn,
+            &mut self.name_cache,
+            doc.name.as_ref().map(|s| s.as_str()),
+        )?;
+        let desc_name = option_write(
+            self.conn,
+            &mut self.desc_cache,
+            doc.description.as_ref().map(|s| s.as_str()),
+        )?;
 
         let shared_cache = &mut self.packaging_cache;
         let pkg_name = option_write(self.conn, shared_cache, Some(&doc.object_info.packaging))?;
@@ -89,7 +97,7 @@ create table if not exists {name}_names (
         let classifier_name = option_write(
             self.conn,
             &mut self.classifier_cache,
-            doc.id.classifier.as_ref(),
+            doc.id.classifier.as_ref().map(|s| s.as_str()),
         )?;
 
         self.conn
@@ -121,7 +129,7 @@ insert into versions
             .insert([
                 &group_name as &dyn ToSql,
                 &artifact_name,
-                &doc.id.version,
+                &doc.id.version.as_str(),
                 &classifier_name,
                 &ext_name,
                 &pkg_name,
@@ -142,9 +150,9 @@ insert into versions
 fn option_write(
     conn: &rusqlite::Connection,
     cache: &mut Cache,
-    val: Option<&String>,
+    val: Option<&str>,
 ) -> Result<Option<i64>> {
-    val.filter(|name| empty_filter(name.as_str()))
+    val.filter(|name| empty_filter(name))
         .map(|name| -> Result<i64> { string_write(conn, cache, name) })
         .inside_out()
 }
