@@ -205,5 +205,5 @@ fn attached_bool(status: AttachmentStatus) -> Option<bool> {
 }
 
 fn empty_filter(s: &str) -> bool {
-    !s.is_empty() && "null" != s
+    !s.is_empty()
 }
