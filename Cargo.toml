@@ -31,7 +31,7 @@ insideout = "0.2"
 [dependencies.rusqlite]
 features = ["bundled"]
 optional = true
-version = "0.30"
+version = "0.31"
 
 [[example]]
 name = "sqlite_search"
